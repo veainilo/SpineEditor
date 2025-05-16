@@ -226,7 +226,17 @@ namespace SpineEditor.Events
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            // 绘制 Spine 动画
+            _spriteBatch.Begin();
+
+            // 首先绘制网格（在最底层）
+            if (_viewport.ShowGrid)
+            {
+                _viewport.DrawGrid(_spriteBatch);
+            }
+
+            _spriteBatch.End();
+
+            // 绘制 Spine 动画（在网格之上）
             _eventEditor.Draw();
 
             _spriteBatch.Begin();
@@ -240,8 +250,8 @@ namespace SpineEditor.Events
             _speedTextBox.Draw(_spriteBatch, _font);
             _animationDropdown.Draw(_spriteBatch);
 
-            // 绘制视口控件
-            _viewport.Draw(_spriteBatch);
+            // 绘制视口控件（除了网格）
+            _viewport.DrawInfo(_spriteBatch);
 
             // 绘制当前时间
             string timeText = $"Current Time: {_eventEditor.CurrentTime:0.000} / {_eventEditor.AnimationDuration:0.000}";

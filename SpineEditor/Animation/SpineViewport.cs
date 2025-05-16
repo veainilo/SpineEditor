@@ -29,14 +29,7 @@ namespace SpineEditor.Animation
         private float _maxScale = 10.0f;
         private float _scaleStep = 0.1f;
 
-        /// <summary>
-        /// 获取或设置是否显示网格
-        /// </summary>
-        public bool ShowGrid
-        {
-            get => _showGrid;
-            set => _showGrid = value;
-        }
+        // 已移动到下方
 
         /// <summary>
         /// 获取或设置网格大小
@@ -135,17 +128,20 @@ namespace SpineEditor.Animation
         }
 
         /// <summary>
-        /// 绘制视口
+        /// 获取或设置是否显示网格
+        /// </summary>
+        public bool ShowGrid
+        {
+            get => _showGrid;
+            set => _showGrid = value;
+        }
+
+        /// <summary>
+        /// 绘制视口信息（不包括网格）
         /// </summary>
         /// <param name="spriteBatch">精灵批处理</param>
-        public void Draw(SpriteBatch spriteBatch)
+        public void DrawInfo(SpriteBatch spriteBatch)
         {
-            // 绘制网格
-            if (_showGrid)
-            {
-                DrawGrid(spriteBatch);
-            }
-
             // 绘制缩放信息
             string scaleText = $"Scale: {_player.Scale:0.00}";
             spriteBatch.DrawString(_font, scaleText, new Vector2(10, 110), Color.White);
@@ -155,7 +151,7 @@ namespace SpineEditor.Animation
         /// 绘制网格
         /// </summary>
         /// <param name="spriteBatch">精灵批处理</param>
-        private void DrawGrid(SpriteBatch spriteBatch)
+        public void DrawGrid(SpriteBatch spriteBatch)
         {
             int viewWidth = _graphicsDevice.Viewport.Width;
             int viewHeight = _graphicsDevice.Viewport.Height;
