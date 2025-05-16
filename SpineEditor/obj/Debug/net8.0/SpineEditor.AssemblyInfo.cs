@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SpineEditor")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e442c224b83aa76ebcd919f671b220a720c4f7f5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fdcbaecfd0c68451f56aacbdb1c456f81d46d810")]
 [assembly: System.Reflection.AssemblyProductAttribute("SpineEditor")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SpineEditor")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

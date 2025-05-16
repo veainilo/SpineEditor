@@ -30,5 +30,3 @@ t:\midplat\monogame\SpineEditor\obj\Debug\net8.0\SpineEditor.pdb
 t:\midplat\monogame\SpineEditor\obj\Debug\net8.0\SpineEditor.genruntimeconfig.cache
 t:\midplat\monogame\SpineEditor\obj\Debug\net8.0\ref\SpineEditor.dll
 T:\midplat\monogame\SpineEditor\bin\Debug\net8.0\Content\shaders\SpineEffect.xnb
-T:\midplat\monogame\SpineEditor\bin\Debug\net8.0\spine-monogame.dll
-T:\midplat\monogame\SpineEditor\bin\Debug\net8.0\spine-monogame.pdb
