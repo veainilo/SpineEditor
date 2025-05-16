@@ -126,6 +126,16 @@
         "runtime": {
           "lib/netcoreapp2.0/_._": {}
         }
+      },
+      "spine-monogame/1.0.0": {
+        "type": "project",
+        "framework": ".NETStandard,Version=v2.0",
+        "compile": {
+          "bin/placeholder/spine-monogame.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/spine-monogame.dll": {}
+        }
       }
     }
   },
@@ -328,12 +338,18 @@
         "useSharedDesignerContext.txt",
         "version.txt"
       ]
+    },
+    "spine-monogame/1.0.0": {
+      "type": "project",
+      "path": "../../spine-runtimes/spine-monogame/spine-monogame/spine-monogame.csproj",
+      "msbuildProject": "../../spine-runtimes/spine-monogame/spine-monogame/spine-monogame.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net8.0": [
       "MonoGame.Content.Builder.Task >= 3.8.*",
-      "MonoGame.Framework.DesktopGL >= 3.8.*"
+      "MonoGame.Framework.DesktopGL >= 3.8.*",
+      "spine-monogame >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -367,7 +383,11 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "T:\\midplat\\spine-runtimes\\spine-monogame\\spine-monogame\\spine-monogame.csproj": {
+              "projectPath": "T:\\midplat\\spine-runtimes\\spine-monogame\\spine-monogame\\spine-monogame.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

@@ -1,3 +1,4 @@
 {
-    "dotnet.defaultSolution": "SpineEditor.sln"
+    "dotnet.defaultSolution": "SpineEditor.sln",
+    "dotnet.preferCSharpExtension": true
 }

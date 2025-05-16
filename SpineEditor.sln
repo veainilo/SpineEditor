@@ -5,6 +5,10 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpineEditor", "SpineEditor\SpineEditor.csproj", "{23B795EC-6763-41D8-B852-A32B29DFF342}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "spine-csharp", "..\spine-runtimes\spine-csharp\spine-csharp.csproj", "{94144E22-2431-4A8F-AC04-DEC22F7EDD8F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "spine-monogame", "..\spine-runtimes\spine-monogame\spine-monogame\spine-monogame.csproj", "{72DC07F7-66DB-49D3-97F2-3CD50A77E853}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,30 @@ Global
 		{23B795EC-6763-41D8-B852-A32B29DFF342}.Release|x64.Build.0 = Release|Any CPU
 		{23B795EC-6763-41D8-B852-A32B29DFF342}.Release|x86.ActiveCfg = Release|Any CPU
 		{23B795EC-6763-41D8-B852-A32B29DFF342}.Release|x86.Build.0 = Release|Any CPU
+		{94144E22-2431-4A8F-AC04-DEC22F7EDD8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94144E22-2431-4A8F-AC04-DEC22F7EDD8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94144E22-2431-4A8F-AC04-DEC22F7EDD8F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{94144E22-2431-4A8F-AC04-DEC22F7EDD8F}.Debug|x64.Build.0 = Debug|Any CPU
+		{94144E22-2431-4A8F-AC04-DEC22F7EDD8F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{94144E22-2431-4A8F-AC04-DEC22F7EDD8F}.Debug|x86.Build.0 = Debug|Any CPU
+		{94144E22-2431-4A8F-AC04-DEC22F7EDD8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94144E22-2431-4A8F-AC04-DEC22F7EDD8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94144E22-2431-4A8F-AC04-DEC22F7EDD8F}.Release|x64.ActiveCfg = Release|Any CPU
+		{94144E22-2431-4A8F-AC04-DEC22F7EDD8F}.Release|x64.Build.0 = Release|Any CPU
+		{94144E22-2431-4A8F-AC04-DEC22F7EDD8F}.Release|x86.ActiveCfg = Release|Any CPU
+		{94144E22-2431-4A8F-AC04-DEC22F7EDD8F}.Release|x86.Build.0 = Release|Any CPU
+		{72DC07F7-66DB-49D3-97F2-3CD50A77E853}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72DC07F7-66DB-49D3-97F2-3CD50A77E853}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72DC07F7-66DB-49D3-97F2-3CD50A77E853}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{72DC07F7-66DB-49D3-97F2-3CD50A77E853}.Debug|x64.Build.0 = Debug|Any CPU
+		{72DC07F7-66DB-49D3-97F2-3CD50A77E853}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{72DC07F7-66DB-49D3-97F2-3CD50A77E853}.Debug|x86.Build.0 = Debug|Any CPU
+		{72DC07F7-66DB-49D3-97F2-3CD50A77E853}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72DC07F7-66DB-49D3-97F2-3CD50A77E853}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72DC07F7-66DB-49D3-97F2-3CD50A77E853}.Release|x64.ActiveCfg = Release|Any CPU
+		{72DC07F7-66DB-49D3-97F2-3CD50A77E853}.Release|x64.Build.0 = Release|Any CPU
+		{72DC07F7-66DB-49D3-97F2-3CD50A77E853}.Release|x86.ActiveCfg = Release|Any CPU
+		{72DC07F7-66DB-49D3-97F2-3CD50A77E853}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

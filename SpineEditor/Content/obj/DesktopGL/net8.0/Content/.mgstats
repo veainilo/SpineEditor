@@ -1,1 +1,2 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
+"T:/midplat/monogame/SpineEditor/Content/shaders/SpineEffect.fx","T:/midplat/monogame/SpineEditor/Content/bin/DesktopGL/Content/shaders/SpineEffect.xnb","EffectProcessor","CompiledEffectContent",1607,2773,37.021126
