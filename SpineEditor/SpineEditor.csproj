@@ -32,6 +32,7 @@
     <Compile Include="Spine\xna\**\*.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="SpineAnimationPlayer.cs" />
   </ItemGroup>
   <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
     <Message Text="Restoring dotnet tools" Importance="High" />
