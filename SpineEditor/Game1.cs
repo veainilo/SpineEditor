@@ -27,8 +27,19 @@ public class Game1 : Game
     protected override void Initialize()
     {
         // 初始化 Spine 渲染器
-        _skeletonRenderer = new SkeletonRenderer(GraphicsDevice);
-        _skeletonRenderer.PremultipliedAlpha = true;
+        try
+        {
+            System.Console.WriteLine("初始化 SkeletonRenderer...");
+            _skeletonRenderer = new SkeletonRenderer(GraphicsDevice);
+            _skeletonRenderer.PremultipliedAlpha = true;
+            System.Console.WriteLine("SkeletonRenderer 初始化成功");
+        }
+        catch (System.Exception ex)
+        {
+            System.Console.WriteLine($"初始化 SkeletonRenderer 时出错: {ex.Message}");
+            if (ex.InnerException != null)
+                System.Console.WriteLine($"内部错误: {ex.InnerException.Message}");
+        }
 
         base.Initialize();
     }
@@ -200,8 +211,7 @@ public class Game1 : Game
         {
             _animationState.Update(deltaTime);
             _animationState.Apply(_skeleton);
-            // 不同版本的 Spine API 可能有不同的参数
-            // _skeleton.UpdateWorldTransform();
+            _skeleton.UpdateWorldTransform();
         }
 
         base.Update(gameTime);
@@ -216,7 +226,8 @@ public class Game1 : Game
         {
             try
             {
-                _spriteBatch.Begin();
+                // 使用适合 Spine 渲染的 SpriteBatch 参数
+                _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
 
                 try
                 {
@@ -227,9 +238,28 @@ public class Game1 : Game
                         System.Console.WriteLine($"Viewport: Width={GraphicsDevice.Viewport.Width}, Height={GraphicsDevice.Viewport.Height}");
                     }
 
-                    _skeletonRenderer.Begin();
-                    _skeletonRenderer.Draw(_skeleton);
-                    _skeletonRenderer.End();
+                    // 在 3.8 版本中，SkeletonRenderer 的使用方式可能不同
+                    try
+                    {
+                        // 尝试方法 1：使用 Begin/End 方法
+                        _skeletonRenderer.Begin();
+                        _skeletonRenderer.Draw(_skeleton);
+                        _skeletonRenderer.End();
+                    }
+                    catch (System.Exception ex1)
+                    {
+                        System.Console.WriteLine($"方法 1 失败: {ex1.Message}");
+
+                        try
+                        {
+                            // 尝试方法 2：直接调用 Draw 方法
+                            _skeletonRenderer.Draw(_skeleton);
+                        }
+                        catch (System.Exception ex2)
+                        {
+                            System.Console.WriteLine($"方法 2 失败: {ex2.Message}");
+                        }
+                    }
                 }
                 catch (System.Exception ex)
                 {
