@@ -102,23 +102,23 @@ namespace SpineEditor.UI
         /// <param name="font">字体</param>
         public void Draw(SpriteBatch spriteBatch, SpriteFont font)
         {
-            // 根据按钮状态选择颜色
+            // 根据按钮状态选择颜色 - 使用更鲜明的颜色
             Color color;
             if (_isPressed)
-                color = new Color(100, 100, 100);
+                color = new Color(80, 80, 120); // 按下时使用深蓝色
             else if (_isHovered)
-                color = new Color(150, 150, 150);
+                color = new Color(100, 100, 180); // 悬停时使用蓝色
             else
-                color = new Color(200, 200, 200);
+                color = new Color(120, 120, 200); // 正常状态使用浅蓝色
 
             // 绘制按钮背景
             spriteBatch.Draw(_texture, _bounds, color);
 
-            // 绘制按钮边框
-            Color borderColor = _isHovered ? Color.White : new Color(100, 100, 100);
-            DrawBorder(spriteBatch, _bounds, borderColor, 1);
+            // 绘制按钮边框 - 使用更明显的边框
+            Color borderColor = _isHovered ? Color.Yellow : new Color(180, 180, 255);
+            DrawBorder(spriteBatch, _bounds, borderColor, 2); // 使用更粗的边框
 
-            // 绘制按钮文本
+            // 绘制按钮文本 - 使用更明显的文本
             if (!string.IsNullOrEmpty(_text))
             {
                 Vector2 textSize = font.MeasureString(_text);
@@ -126,7 +126,12 @@ namespace SpineEditor.UI
                     _bounds.X + (_bounds.Width - textSize.X) / 2,
                     _bounds.Y + (_bounds.Height - textSize.Y) / 2
                 );
-                spriteBatch.DrawString(font, _text, textPosition, Color.Black);
+
+                // 绘制文本阴影以增强可读性
+                spriteBatch.DrawString(font, _text, new Vector2(textPosition.X + 1, textPosition.Y + 1), new Color(0, 0, 0, 150));
+
+                // 使用白色绘制文本
+                spriteBatch.DrawString(font, _text, textPosition, Color.White);
             }
         }
 
@@ -303,27 +308,36 @@ namespace SpineEditor.UI
             if (!_visible)
                 return;
 
-            // 绘制标签
+            // 绘制标签 - 使用更明显的颜色
             if (!string.IsNullOrEmpty(_label))
             {
-                spriteBatch.DrawString(font, _label, new Vector2(_bounds.X, _bounds.Y - 20), Color.White);
+                // 绘制标签背景以增强可读性
+                Vector2 labelSize = font.MeasureString(_label);
+                spriteBatch.Draw(_texture, new Rectangle(_bounds.X, _bounds.Y - 22, (int)labelSize.X + 6, 22), new Color(60, 60, 60));
+
+                // 使用亮黄色绘制标签文本
+                spriteBatch.DrawString(font, _label, new Vector2(_bounds.X + 3, _bounds.Y - 20), new Color(255, 255, 0));
             }
 
-            // 绘制文本框背景
-            Color backgroundColor = _isSelected ? new Color(60, 60, 60) : (_isHovered ? new Color(50, 50, 50) : new Color(40, 40, 40));
+            // 绘制文本框背景 - 使用更亮的颜色
+            Color backgroundColor = _isSelected ? new Color(70, 70, 70) : (_isHovered ? new Color(60, 60, 60) : new Color(50, 50, 50));
             spriteBatch.Draw(_texture, _bounds, backgroundColor);
 
-            // 绘制文本框边框
-            Color borderColor = _isSelected ? Color.White : (_isHovered ? new Color(150, 150, 150) : new Color(100, 100, 100));
-            DrawBorder(spriteBatch, _bounds, borderColor, 1);
+            // 绘制文本框边框 - 使用更明显的颜色和更粗的边框
+            Color borderColor = _isSelected ? Color.Yellow : (_isHovered ? new Color(200, 200, 200) : new Color(150, 150, 150));
+            DrawBorder(spriteBatch, _bounds, borderColor, 2);
 
-            // 绘制文本
+            // 绘制文本 - 使用更明显的颜色
             if (!string.IsNullOrEmpty(_text))
             {
-                spriteBatch.DrawString(font, _text, new Vector2(_bounds.X + 5, _bounds.Y + (_bounds.Height - font.MeasureString(_text).Y) / 2), Color.White);
+                // 绘制文本阴影以增强可读性
+                spriteBatch.DrawString(font, _text, new Vector2(_bounds.X + 6, _bounds.Y + (_bounds.Height - font.MeasureString(_text).Y) / 2 + 1), new Color(0, 0, 0, 150));
+
+                // 使用亮色绘制文本
+                spriteBatch.DrawString(font, _text, new Vector2(_bounds.X + 5, _bounds.Y + (_bounds.Height - font.MeasureString(_text).Y) / 2), new Color(220, 220, 220));
             }
 
-            // 绘制光标
+            // 绘制光标 - 使用更明显的光标
             if (_isSelected && _showCursor)
             {
                 float cursorX = _bounds.X + 5;
@@ -331,7 +345,8 @@ namespace SpineEditor.UI
                 {
                     cursorX += font.MeasureString(_text).X;
                 }
-                spriteBatch.Draw(_texture, new Rectangle((int)cursorX, _bounds.Y + 5, 1, _bounds.Height - 10), Color.White);
+                // 使用更宽、更亮的光标
+                spriteBatch.Draw(_texture, new Rectangle((int)cursorX, _bounds.Y + 5, 2, _bounds.Height - 10), Color.Yellow);
             }
         }
 

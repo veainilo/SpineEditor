@@ -52,47 +52,87 @@ namespace SpineEditor.UI
             _eventEditor = eventEditor;
             _font = font;
 
-            // 创建纹理
-            _background = new Texture2D(graphicsDevice, 1, 1);
-            _background.SetData(new[] { new Color(50, 50, 50) });
-
             // 初始化绘制工具类
             DrawingUtils.Initialize(graphicsDevice);
+
+            // 创建背景纹理 - 使用更专业的深色背景
+            _background = new Texture2D(graphicsDevice, 1, 1);
+            _background.SetData(new[] { new Color(30, 30, 35) }); // 深蓝灰色背景
 
             // 使用绘制工具类的像素纹理
             _pixel = new Texture2D(graphicsDevice, 1, 1);
             _pixel.SetData(new[] { Color.White });
 
-            // 创建事件标记纹理
-            _eventMarker = new Texture2D(graphicsDevice, 10, 20);
-            Color[] eventMarkerData = new Color[10 * 20];
+            // 创建事件标记纹理 - 使用更专业的菱形标记
+            _eventMarker = new Texture2D(graphicsDevice, 16, 20);
+            Color[] eventMarkerData = new Color[16 * 20];
+
+            // 创建菱形标记
             for (int y = 0; y < 20; y++)
             {
-                for (int x = 0; x < 10; x++)
+                for (int x = 0; x < 16; x++)
                 {
-                    if (y < 10 && (x == 0 || x == 9 || y == 0 || y == 9))
-                        eventMarkerData[y * 10 + x] = Color.Red;
-                    else if (y >= 10 && x >= 2 && x <= 7)
-                        eventMarkerData[y * 10 + x] = Color.Red;
+                    // 菱形形状
+                    int centerX = 8;
+                    int centerY = 10;
+                    int distance = Math.Abs(x - centerX) + Math.Abs(y - centerY);
+
+                    if (distance <= 7) // 菱形内部
+                    {
+                        if (distance == 7) // 菱形边缘
+                            eventMarkerData[y * 16 + x] = new Color(255, 180, 0); // 橙色边框
+                        else if (distance == 6) // 内边缘
+                            eventMarkerData[y * 16 + x] = new Color(255, 200, 0); // 浅橙色
+                        else // 内部填充
+                            eventMarkerData[y * 16 + x] = new Color(255, 220, 0, 200); // 半透明黄色
+                    }
                     else
-                        eventMarkerData[y * 10 + x] = Color.Transparent;
+                    {
+                        eventMarkerData[y * 16 + x] = Color.Transparent;
+                    }
                 }
             }
             _eventMarker.SetData(eventMarkerData);
 
-            // 创建播放头标记纹理
-            _playheadMarker = new Texture2D(graphicsDevice, 9, 15);
-            Color[] playheadMarkerData = new Color[9 * 15];
-            for (int y = 0; y < 15; y++)
+            // 创建播放头标记纹理 - 使用更专业的播放头
+            _playheadMarker = new Texture2D(graphicsDevice, 15, 20);
+            Color[] playheadMarkerData = new Color[15 * 20];
+
+            // 创建三角形播放头
+            for (int y = 0; y < 20; y++)
             {
-                for (int x = 0; x < 9; x++)
+                for (int x = 0; x < 15; x++)
                 {
-                    if (y < 9 && x == 4)
-                        playheadMarkerData[y * 9 + x] = Color.Yellow;
-                    else if (y >= 9 && x >= 0 && x <= 8 && y - 9 <= 8 - x && y - 9 <= x)
-                        playheadMarkerData[y * 9 + x] = Color.Yellow;
+                    // 顶部线条
+                    if (y == 0 && x >= 5 && x <= 9)
+                    {
+                        playheadMarkerData[y * 15 + x] = new Color(0, 200, 255); // 青色
+                    }
+                    // 垂直线条
+                    else if (x == 7 && y <= 15)
+                    {
+                        playheadMarkerData[y * 15 + x] = new Color(0, 200, 255); // 青色
+                    }
+                    // 三角形
+                    else if (y >= 15 && y < 20)
+                    {
+                        int distanceFromCenter = Math.Abs(x - 7);
+                        if (distanceFromCenter <= (y - 15))
+                        {
+                            if (distanceFromCenter == (y - 15) || y == 19) // 边缘
+                                playheadMarkerData[y * 15 + x] = new Color(0, 200, 255); // 青色边框
+                            else // 内部填充
+                                playheadMarkerData[y * 15 + x] = new Color(0, 180, 255, 200); // 半透明青色
+                        }
+                        else
+                        {
+                            playheadMarkerData[y * 15 + x] = Color.Transparent;
+                        }
+                    }
                     else
-                        playheadMarkerData[y * 9 + x] = Color.Transparent;
+                    {
+                        playheadMarkerData[y * 15 + x] = Color.Transparent;
+                    }
                 }
             }
             _playheadMarker.SetData(playheadMarkerData);
@@ -273,22 +313,45 @@ namespace SpineEditor.UI
             // 绘制背景
             DrawingUtils.DrawTexture(spriteBatch, _background, _bounds, Color.White);
 
-            // 绘制时间刻度
+            // 绘制水平分隔线
+            DrawingUtils.DrawHorizontalLine(spriteBatch, _bounds.X, _bounds.Y + 20, _bounds.Width, new Color(60, 60, 70), 1);
+            DrawingUtils.DrawHorizontalLine(spriteBatch, _bounds.X, _bounds.Y + 40, _bounds.Width, new Color(60, 60, 70), 1);
+            DrawingUtils.DrawHorizontalLine(spriteBatch, _bounds.X, _bounds.Y + _bounds.Height - 1, _bounds.Width, new Color(60, 60, 70), 1);
+
+            // 绘制时间刻度和网格线
             float timeStep = GetTimeStep();
             for (float t = 0; t <= _duration; t += timeStep)
             {
                 float x = XFromTime(t);
                 if (x >= _bounds.X && x <= _bounds.X + _bounds.Width)
                 {
-                    // 绘制刻度线
-                    DrawingUtils.DrawVerticalLine(spriteBatch, (int)x, _bounds.Y + 20, 10, Color.Gray);
+                    bool isMainTick = Math.Abs(t - Math.Round(t, 0)) < 0.001f; // 整数时间点
 
-                    // 绘制时间文本
-                    string timeText = t.ToString("0.00");
-                    Vector2 textSize = _font.MeasureString(timeText);
-                    spriteBatch.DrawString(_font, timeText, new Vector2(x - textSize.X / 2, _bounds.Y + 2), Color.White);
+                    // 绘制刻度线 - 主刻度线更长更明显
+                    if (isMainTick)
+                    {
+                        // 主刻度线
+                        DrawingUtils.DrawVerticalLine(spriteBatch, (int)x, _bounds.Y + 20, 20, new Color(150, 150, 170));
+
+                        // 垂直网格线 - 半透明
+                        DrawingUtils.DrawVerticalLine(spriteBatch, (int)x, _bounds.Y + 40, _bounds.Height - 40, new Color(80, 80, 100, 100));
+
+                        // 绘制时间文本 - 只在主刻度线上显示
+                        string timeText = t.ToString("0.00");
+                        Vector2 textSize = _font.MeasureString(timeText);
+                        spriteBatch.DrawString(_font, timeText, new Vector2(x - textSize.X / 2, _bounds.Y + 2), new Color(200, 200, 220));
+                    }
+                    else
+                    {
+                        // 次刻度线
+                        DrawingUtils.DrawVerticalLine(spriteBatch, (int)x, _bounds.Y + 20, 10, new Color(100, 100, 120));
+                    }
                 }
             }
+
+            // 绘制事件轨道背景
+            Rectangle eventTrackRect = new Rectangle(_bounds.X, _bounds.Y + 40, _bounds.Width, 30);
+            DrawingUtils.DrawRectangle(spriteBatch, eventTrackRect, new Color(40, 40, 50));
 
             // 绘制事件标记
             foreach (var evt in _eventEditor.Events)
@@ -296,21 +359,88 @@ namespace SpineEditor.UI
                 float x = XFromTime(evt.Time);
                 if (x >= _bounds.X - 10 && x <= _bounds.X + _bounds.Width + 10)
                 {
-                    Color color = (evt == _selectedEvent) ? Color.Yellow : Color.White;
-                    DrawingUtils.DrawTexture(spriteBatch, _eventMarker, new Vector2(x - 5, _bounds.Y + 30), color);
+                    // 根据事件类型选择不同的颜色
+                    Color color;
+                    switch (evt.EventType)
+                    {
+                        case EventType.Attack:
+                            color = new Color(255, 100, 100); // 红色
+                            break;
+                        case EventType.Effect:
+                            color = new Color(100, 255, 100); // 绿色
+                            break;
+                        case EventType.Sound:
+                            color = new Color(100, 100, 255); // 蓝色
+                            break;
+                        default:
+                            color = new Color(255, 220, 0);   // 黄色
+                            break;
+                    }
+
+                    // 如果是选中的事件，使用更亮的颜色
+                    if (evt == _selectedEvent)
+                    {
+                        color = Color.Lerp(color, Color.White, 0.5f);
+                    }
+
+                    // 绘制事件标记
+                    DrawingUtils.DrawTexture(spriteBatch, _eventMarker, new Vector2(x - 8, _bounds.Y + 45), color);
 
                     // 绘制事件名称
                     Vector2 textSize = _font.MeasureString(evt.Name);
-                    spriteBatch.DrawString(_font, evt.Name, new Vector2(x - textSize.X / 2, _bounds.Y + 55), color);
+
+                    // 绘制文本背景以增强可读性
+                    if (evt == _selectedEvent)
+                    {
+                        Rectangle textBgRect = new Rectangle(
+                            (int)(x - textSize.X / 2 - 2),
+                            _bounds.Y + 70,
+                            (int)textSize.X + 4,
+                            (int)textSize.Y + 2
+                        );
+                        DrawingUtils.DrawRectangle(spriteBatch, textBgRect, new Color(40, 40, 50, 200));
+                    }
+
+                    // 绘制事件名称文本
+                    spriteBatch.DrawString(
+                        _font,
+                        evt.Name,
+                        new Vector2(x - textSize.X / 2, _bounds.Y + 71),
+                        evt == _selectedEvent ? Color.White : new Color(200, 200, 200)
+                    );
                 }
             }
+
+            // 绘制当前时间文本
+            string currentTimeText = _eventEditor.CurrentTime.ToString("0.000") + " s";
+            Vector2 currentTimeSize = _font.MeasureString(currentTimeText);
+            spriteBatch.DrawString(
+                _font,
+                currentTimeText,
+                new Vector2(_bounds.X + _bounds.Width - currentTimeSize.X - 10, _bounds.Y + 2),
+                new Color(0, 200, 255)
+            );
 
             // 绘制当前播放位置
             float currentX = XFromTime(_eventEditor.CurrentTime);
             if (currentX >= _bounds.X - 5 && currentX <= _bounds.X + _bounds.Width + 5)
             {
-                DrawingUtils.DrawTexture(spriteBatch, _playheadMarker, new Vector2(currentX - 4, _bounds.Y + 5), Color.White);
-                DrawingUtils.DrawVerticalLine(spriteBatch, (int)currentX, _bounds.Y + 20, _bounds.Height - 20, Color.Yellow);
+                // 绘制播放头标记
+                DrawingUtils.DrawTexture(spriteBatch, _playheadMarker, new Vector2(currentX - 7, _bounds.Y), Color.White);
+
+                // 绘制播放头线条 - 使用渐变效果
+                for (int i = 0; i < _bounds.Height - 20; i++)
+                {
+                    float alpha = 1.0f - (i / (float)(_bounds.Height - 20)) * 0.7f;
+                    DrawingUtils.DrawRectangle(
+                        spriteBatch,
+                        (int)currentX - 1,
+                        _bounds.Y + 20 + i,
+                        2,
+                        1,
+                        new Color(0, 200, 255, (int)(255 * alpha))
+                    );
+                }
             }
 
             // 绘制上下文菜单
@@ -361,13 +491,23 @@ namespace SpineEditor.UI
         /// <returns>时间步长</returns>
         private float GetTimeStep()
         {
-            // 根据缩放级别调整时间步长
-            if (_zoom <= 0.2f) return 5.0f;
-            if (_zoom <= 0.5f) return 2.0f;
-            if (_zoom <= 1.0f) return 1.0f;
-            if (_zoom <= 2.0f) return 0.5f;
-            if (_zoom <= 5.0f) return 0.2f;
-            return 0.1f;
+            // 根据缩放级别和动画时长调整时间步长
+            float baseDuration = Math.Max(1.0f, _duration);
+
+            // 计算合适的步长，使得时间轴上的刻度数量适中
+            float targetStepCount = 20.0f * _zoom; // 目标刻度数量随缩放增加
+            float rawStep = baseDuration / targetStepCount;
+
+            // 将步长规范化为易读的值：0.1, 0.2, 0.5, 1.0, 2.0, 5.0 等
+            float magnitude = (float)Math.Pow(10, Math.Floor(Math.Log10(rawStep)));
+            float normalizedStep = rawStep / magnitude;
+
+            if (normalizedStep < 0.2f) return 0.1f * magnitude;
+            if (normalizedStep < 0.5f) return 0.2f * magnitude;
+            if (normalizedStep < 1.0f) return 0.5f * magnitude;
+            if (normalizedStep < 2.0f) return 1.0f * magnitude;
+            if (normalizedStep < 5.0f) return 2.0f * magnitude;
+            return 5.0f * magnitude;
         }
     }
 }

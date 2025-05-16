@@ -60,9 +60,9 @@ namespace SpineEditor.UI
             _eventEditor = eventEditor;
             _font = font;
 
-            // 创建背景
+            // 创建背景 - 使用更亮的颜色
             _background = new Texture2D(graphicsDevice, 1, 1);
-            _background.SetData(new[] { new Color(30, 30, 30) });
+            _background.SetData(new[] { new Color(40, 40, 40) });
 
             // 创建通用 UI 元素
             _deleteButton = new Button(graphicsDevice, "Delete", new Rectangle(0, 0, 100, 30));
@@ -574,8 +574,8 @@ namespace SpineEditor.UI
             // 绘制背景
             spriteBatch.Draw(_background, _bounds, Color.White);
 
-            // 绘制标题
-            spriteBatch.DrawString(_font, "Event Properties", new Vector2(_bounds.X + 10, _bounds.Y + 10), Color.White);
+            // 绘制标题 - 使用更明显的颜色
+            spriteBatch.DrawString(_font, "Event Properties", new Vector2(_bounds.X + 10, _bounds.Y + 10), new Color(255, 255, 0)); // 黄色标题
 
             if (_selectedEvent == null)
             {
