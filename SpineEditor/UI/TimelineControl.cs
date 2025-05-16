@@ -31,6 +31,11 @@ namespace SpineEditor.UI
         private ContextMenu _contextMenu;
         private float _contextMenuTime;
 
+        // 固定网格相关
+        private const int GRID_CELL_WIDTH = 50;  // 固定网格单元格宽度
+        private const int GRID_CELL_HEIGHT = 30; // 固定网格单元格高度
+        private bool _showFixedGrid = true;      // 是否显示固定网格
+
         /// <summary>
         /// 获取选中的事件
         /// </summary>
@@ -313,12 +318,28 @@ namespace SpineEditor.UI
             // 绘制背景
             DrawingUtils.DrawTexture(spriteBatch, _background, _bounds, Color.White);
 
-            // 绘制水平分隔线
+            // 绘制固定网格（不受缩放影响）
+            if (_showFixedGrid)
+            {
+                // 绘制垂直网格线
+                for (int x = _bounds.X; x <= _bounds.X + _bounds.Width; x += GRID_CELL_WIDTH)
+                {
+                    DrawingUtils.DrawVerticalLine(spriteBatch, x, _bounds.Y, _bounds.Height, new Color(50, 50, 60, 50));
+                }
+
+                // 绘制水平网格线
+                for (int y = _bounds.Y; y <= _bounds.Y + _bounds.Height; y += GRID_CELL_HEIGHT)
+                {
+                    DrawingUtils.DrawHorizontalLine(spriteBatch, _bounds.X, y, _bounds.Width, new Color(50, 50, 60, 50));
+                }
+            }
+
+            // 绘制水平分隔线（在网格之上）
             DrawingUtils.DrawHorizontalLine(spriteBatch, _bounds.X, _bounds.Y + 20, _bounds.Width, new Color(60, 60, 70), 1);
             DrawingUtils.DrawHorizontalLine(spriteBatch, _bounds.X, _bounds.Y + 40, _bounds.Width, new Color(60, 60, 70), 1);
             DrawingUtils.DrawHorizontalLine(spriteBatch, _bounds.X, _bounds.Y + _bounds.Height - 1, _bounds.Width, new Color(60, 60, 70), 1);
 
-            // 绘制时间刻度和网格线
+            // 绘制时间刻度和动态网格线（受缩放影响）
             float timeStep = GetTimeStep();
             for (float t = 0; t <= _duration; t += timeStep)
             {
@@ -333,8 +354,8 @@ namespace SpineEditor.UI
                         // 主刻度线
                         DrawingUtils.DrawVerticalLine(spriteBatch, (int)x, _bounds.Y + 20, 20, new Color(150, 150, 170));
 
-                        // 垂直网格线 - 半透明
-                        DrawingUtils.DrawVerticalLine(spriteBatch, (int)x, _bounds.Y + 40, _bounds.Height - 40, new Color(80, 80, 100, 100));
+                        // 垂直动态网格线 - 半透明（只在主刻度线处绘制）
+                        DrawingUtils.DrawVerticalLine(spriteBatch, (int)x, _bounds.Y + 40, _bounds.Height - 40, new Color(80, 80, 100, 80));
 
                         // 绘制时间文本 - 只在主刻度线上显示
                         string timeText = t.ToString("0.00");
@@ -345,6 +366,30 @@ namespace SpineEditor.UI
                     {
                         // 次刻度线
                         DrawingUtils.DrawVerticalLine(spriteBatch, (int)x, _bounds.Y + 20, 10, new Color(100, 100, 120));
+                    }
+                }
+            }
+
+            // 绘制固定时间标记（不受缩放影响）
+            if (_showFixedGrid)
+            {
+                // 每秒绘制一个固定时间标记
+                for (float t = 0; t <= _duration; t += 1.0f)
+                {
+                    // 使用 FixedXFromTime 计算固定位置（不受缩放影响）
+                    float fixedX = _bounds.X + (t / _duration) * _bounds.Width;
+
+                    if (fixedX >= _bounds.X && fixedX <= _bounds.X + _bounds.Width)
+                    {
+                        // 绘制固定时间标记（小圆点）
+                        DrawingUtils.DrawRectangle(
+                            spriteBatch,
+                            (int)fixedX - 1,
+                            _bounds.Y + 40,
+                            3,
+                            3,
+                            new Color(100, 100, 255, 100)
+                        );
                     }
                 }
             }
@@ -466,22 +511,24 @@ namespace SpineEditor.UI
         }
 
         /// <summary>
-        /// 将时间转换为 X 坐标
+        /// 将时间转换为 X 坐标（考虑缩放和滚动）
         /// </summary>
         /// <param name="time">时间</param>
         /// <returns>X 坐标</returns>
         private float XFromTime(float time)
         {
+            // 计算时间在总时长中的比例，然后乘以宽度和缩放，再减去滚动偏移
             return _bounds.X + (time / _duration) * _bounds.Width * _zoom - _scrollPosition;
         }
 
         /// <summary>
-        /// 将 X 坐标转换为时间
+        /// 将 X 坐标转换为时间（考虑缩放和滚动）
         /// </summary>
         /// <param name="x">X 坐标</param>
         /// <returns>时间</returns>
         private float TimeFromX(float x)
         {
+            // 将 X 坐标转换回时间（考虑滚动和缩放）
             return ((x + _scrollPosition - _bounds.X) / (_bounds.Width * _zoom)) * _duration;
         }
 
