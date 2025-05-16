@@ -14,7 +14,7 @@ namespace SpineEditor.UI
         private Rectangle _bounds;
         private Texture2D _background;
         private SpriteFont _font;
-        
+
         // UI 元素
         private Button _deleteButton;
         private TextBox _nameTextBox;
@@ -22,7 +22,7 @@ namespace SpineEditor.UI
         private TextBox _intValueTextBox;
         private TextBox _floatValueTextBox;
         private TextBox _stringValueTextBox;
-        
+
         /// <summary>
         /// 创建事件属性编辑面板
         /// </summary>
@@ -33,19 +33,19 @@ namespace SpineEditor.UI
         {
             _eventEditor = eventEditor;
             _font = font;
-            
+
             // 创建背景
             _background = new Texture2D(graphicsDevice, 1, 1);
             _background.SetData(new[] { new Color(30, 30, 30) });
-            
+
             // 创建 UI 元素
-            _deleteButton = new Button(graphicsDevice, "删除事件", new Rectangle(0, 0, 100, 30));
-            _nameTextBox = new TextBox(graphicsDevice, "名称", "", new Rectangle(0, 0, 200, 30));
-            _timeTextBox = new TextBox(graphicsDevice, "时间 (秒)", "0", new Rectangle(0, 0, 200, 30));
-            _intValueTextBox = new TextBox(graphicsDevice, "整数值", "0", new Rectangle(0, 0, 200, 30));
-            _floatValueTextBox = new TextBox(graphicsDevice, "浮点值", "0", new Rectangle(0, 0, 200, 30));
-            _stringValueTextBox = new TextBox(graphicsDevice, "字符串值", "", new Rectangle(0, 0, 200, 30));
-            
+            _deleteButton = new Button(graphicsDevice, "Delete", new Rectangle(0, 0, 100, 30));
+            _nameTextBox = new TextBox(graphicsDevice, "Name", "", new Rectangle(0, 0, 200, 30));
+            _timeTextBox = new TextBox(graphicsDevice, "Time (sec)", "0", new Rectangle(0, 0, 200, 30));
+            _intValueTextBox = new TextBox(graphicsDevice, "Int Value", "0", new Rectangle(0, 0, 200, 30));
+            _floatValueTextBox = new TextBox(graphicsDevice, "Float Value", "0", new Rectangle(0, 0, 200, 30));
+            _stringValueTextBox = new TextBox(graphicsDevice, "String Value", "", new Rectangle(0, 0, 200, 30));
+
             // 设置事件处理
             _deleteButton.Click += (sender, e) => {
                 if (_selectedEvent != null)
@@ -58,38 +58,38 @@ namespace SpineEditor.UI
                     }
                 }
             };
-            
+
             _nameTextBox.TextChanged += (sender, e) => {
                 if (_selectedEvent != null)
                 {
                     _selectedEvent.Name = _nameTextBox.Text;
                 }
             };
-            
+
             _timeTextBox.TextChanged += (sender, e) => {
                 if (_selectedEvent != null && float.TryParse(_timeTextBox.Text, out float time))
                 {
                     _selectedEvent.Time = MathHelper.Clamp(time, 0, _eventEditor.AnimationDuration);
-                    
+
                     // 重新排序事件
                     _eventEditor.Events.Sort((a, b) => a.Time.CompareTo(b.Time));
                 }
             };
-            
+
             _intValueTextBox.TextChanged += (sender, e) => {
                 if (_selectedEvent != null && int.TryParse(_intValueTextBox.Text, out int value))
                 {
                     _selectedEvent.IntValue = value;
                 }
             };
-            
+
             _floatValueTextBox.TextChanged += (sender, e) => {
                 if (_selectedEvent != null && float.TryParse(_floatValueTextBox.Text, out float value))
                 {
                     _selectedEvent.FloatValue = value;
                 }
             };
-            
+
             _stringValueTextBox.TextChanged += (sender, e) => {
                 if (_selectedEvent != null)
                 {
@@ -105,7 +105,7 @@ namespace SpineEditor.UI
         public void SetSelectedEvent(FrameEvent evt)
         {
             _selectedEvent = evt;
-            
+
             if (evt != null)
             {
                 _nameTextBox.Text = evt.Name;
@@ -139,16 +139,16 @@ namespace SpineEditor.UI
         {
             // 绘制背景
             spriteBatch.Draw(_background, _bounds, Color.White);
-            
+
             // 绘制标题
-            spriteBatch.DrawString(_font, "事件属性", new Vector2(_bounds.X + 10, _bounds.Y + 10), Color.White);
-            
+            spriteBatch.DrawString(_font, "Event Properties", new Vector2(_bounds.X + 10, _bounds.Y + 10), Color.White);
+
             if (_selectedEvent == null)
             {
-                spriteBatch.DrawString(_font, "未选择事件", new Vector2(_bounds.X + 10, _bounds.Y + 40), Color.Gray);
+                spriteBatch.DrawString(_font, "No event selected", new Vector2(_bounds.X + 10, _bounds.Y + 40), Color.Gray);
                 return;
             }
-            
+
             // 绘制 UI 元素
             _deleteButton.Draw(spriteBatch, _font);
             _nameTextBox.Draw(spriteBatch, _font);
@@ -165,7 +165,7 @@ namespace SpineEditor.UI
         public void SetBounds(Rectangle bounds)
         {
             _bounds = bounds;
-            
+
             // 更新 UI 元素的位置
             int y = _bounds.Y + 40;
             _deleteButton.Bounds = new Rectangle(_bounds.X + 10, y, 100, 30);

@@ -213,15 +213,15 @@ namespace SpineEditor
             _speedTextBox.Draw(_spriteBatch, _font);
 
             // 绘制当前时间
-            string timeText = $"当前时间: {_eventEditor.CurrentTime:0.000} / {_eventEditor.AnimationDuration:0.000}";
+            string timeText = $"Current Time: {_eventEditor.CurrentTime:0.000} / {_eventEditor.AnimationDuration:0.000}";
             _spriteBatch.DrawString(_font, timeText, new Vector2(10, 50), Color.White);
 
             // 绘制当前动画
-            string animText = $"当前动画: {_eventEditor.CurrentAnimation}";
+            string animText = $"Current Animation: {_eventEditor.CurrentAnimation}";
             _spriteBatch.DrawString(_font, animText, new Vector2(10, 70), Color.White);
 
             // 绘制事件数量
-            string eventText = $"事件数量: {_eventEditor.Events.Count}";
+            string eventText = $"Event Count: {_eventEditor.Events.Count}";
             _spriteBatch.DrawString(_font, eventText, new Vector2(10, 90), Color.White);
 
             // 绘制时间轴控件
