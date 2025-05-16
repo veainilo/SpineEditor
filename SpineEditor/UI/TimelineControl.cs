@@ -189,11 +189,17 @@ namespace SpineEditor.UI
                     float zoomDelta = (mouseState.ScrollWheelValue - _prevMouseState.ScrollWheelValue) / 120.0f * 0.1f;
                     float mouseTimePosition = TimeFromX(mouseState.X);
 
+                    // 保存旧的缩放值，用于计算固定网格偏移量的调整
+                    float oldZoom = _zoom;
+
+                    // 更新缩放值
                     _zoom = MathHelper.Clamp(_zoom + zoomDelta, 0.1f, 10.0f);
 
                     // 调整滚动位置，使鼠标下的时间点保持不变
                     float newMouseX = XFromTime(mouseTimePosition);
                     _scrollPosition += mouseState.X - newMouseX;
+
+
                 }
             }
 
@@ -318,19 +324,19 @@ namespace SpineEditor.UI
             // 绘制背景
             DrawingUtils.DrawTexture(spriteBatch, _background, _bounds, Color.White);
 
-            // 绘制固定网格（不受缩放影响）
+            // 绘制固定网格（不受缩放影响）- 放在最底层
             if (_showFixedGrid)
             {
-                // 绘制垂直网格线
+                // 绘制垂直网格线 - 使用更淡的颜色，确保不干扰交互
                 for (int x = _bounds.X; x <= _bounds.X + _bounds.Width; x += GRID_CELL_WIDTH)
                 {
-                    DrawingUtils.DrawVerticalLine(spriteBatch, x, _bounds.Y, _bounds.Height, new Color(50, 50, 60, 50));
+                    DrawingUtils.DrawVerticalLine(spriteBatch, x, _bounds.Y, _bounds.Height, new Color(50, 50, 60, 30));
                 }
 
-                // 绘制水平网格线
+                // 绘制水平网格线 - 使用更淡的颜色，确保不干扰交互
                 for (int y = _bounds.Y; y <= _bounds.Y + _bounds.Height; y += GRID_CELL_HEIGHT)
                 {
-                    DrawingUtils.DrawHorizontalLine(spriteBatch, _bounds.X, y, _bounds.Width, new Color(50, 50, 60, 50));
+                    DrawingUtils.DrawHorizontalLine(spriteBatch, _bounds.X, y, _bounds.Width, new Color(50, 50, 60, 30));
                 }
             }
 
@@ -370,25 +376,25 @@ namespace SpineEditor.UI
                 }
             }
 
-            // 绘制固定时间标记（不受缩放影响）
+            // 绘制固定时间标记（不受缩放影响）- 放在动态网格之上，但在事件轨道之下
             if (_showFixedGrid)
             {
                 // 每秒绘制一个固定时间标记
                 for (float t = 0; t <= _duration; t += 1.0f)
                 {
-                    // 使用 FixedXFromTime 计算固定位置（不受缩放影响）
+                    // 计算固定位置（不受缩放影响）
                     float fixedX = _bounds.X + (t / _duration) * _bounds.Width;
 
                     if (fixedX >= _bounds.X && fixedX <= _bounds.X + _bounds.Width)
                     {
-                        // 绘制固定时间标记（小圆点）
+                        // 绘制固定时间标记（小圆点）- 使用更淡的颜色，确保不干扰交互
                         DrawingUtils.DrawRectangle(
                             spriteBatch,
                             (int)fixedX - 1,
                             _bounds.Y + 40,
                             3,
                             3,
-                            new Color(100, 100, 255, 100)
+                            new Color(100, 100, 255, 50)
                         );
                     }
                 }
