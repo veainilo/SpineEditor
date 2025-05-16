@@ -49,6 +49,9 @@ namespace SpineEditor.UI
         private TextBox _soundVolumeTextBox;
         private TextBox _soundPitchTextBox;
 
+        // 添加事件按钮
+        private Button _addEventButton;
+
         /// <summary>
         /// 创建事件属性编辑面板
         /// </summary>
@@ -63,6 +66,9 @@ namespace SpineEditor.UI
             // 创建背景 - 使用更亮的颜色
             _background = new Texture2D(graphicsDevice, 1, 1);
             _background.SetData(new[] { new Color(40, 40, 40) });
+
+            // 创建添加事件按钮
+            _addEventButton = new Button(graphicsDevice, "Add Event", new Rectangle(0, 0, 120, 30));
 
             // 创建通用 UI 元素
             _deleteButton = new Button(graphicsDevice, "Delete", new Rectangle(0, 0, 100, 30));
@@ -113,7 +119,21 @@ namespace SpineEditor.UI
             _soundVolumeTextBox = new TextBox(graphicsDevice, "Volume", "1.0", new Rectangle(0, 0, 200, 30));
             _soundPitchTextBox = new TextBox(graphicsDevice, "Pitch", "1.0", new Rectangle(0, 0, 200, 30));
 
-            // 设置事件处理
+            // 设置添加事件按钮事件处理
+            _addEventButton.Click += (sender, e) => {
+                // 在当前时间点添加新事件
+                float currentTime = _eventEditor.CurrentTime;
+                FrameEvent newEvent = new FrameEvent("New Event", currentTime, 0, 0, "");
+                _eventEditor.AddEvent(newEvent.Name, newEvent.Time);
+
+                // 选中新添加的事件
+                _selectedEvent = newEvent;
+
+                // 更新UI
+                UpdateUIForEventType();
+            };
+
+            // 设置删除事件按钮事件处理
             _deleteButton.Click += (sender, e) => {
                 if (_selectedEvent != null)
                 {
@@ -512,6 +532,10 @@ namespace SpineEditor.UI
         /// <param name="gameTime">游戏时间</param>
         public void Update(GameTime gameTime)
         {
+            // 始终更新添加事件按钮
+            _addEventButton.Update();
+
+            // 如果没有选中事件，只更新添加按钮
             if (_selectedEvent == null)
                 return;
 
@@ -577,9 +601,12 @@ namespace SpineEditor.UI
             // 绘制标题 - 使用更明显的颜色
             spriteBatch.DrawString(_font, "Event Properties", new Vector2(_bounds.X + 10, _bounds.Y + 10), new Color(255, 255, 0)); // 黄色标题
 
+            // 始终绘制添加事件按钮
+            _addEventButton.Draw(spriteBatch, _font);
+
             if (_selectedEvent == null)
             {
-                spriteBatch.DrawString(_font, "No event selected", new Vector2(_bounds.X + 10, _bounds.Y + 40), Color.Gray);
+                spriteBatch.DrawString(_font, "No event selected", new Vector2(_bounds.X + 10, _bounds.Y + 80), Color.Gray);
                 return;
             }
 
@@ -643,7 +670,13 @@ namespace SpineEditor.UI
 
             // 更新通用 UI 元素的位置
             int y = _bounds.Y + 40;
-            _deleteButton.Bounds = new Rectangle(_bounds.X + 10, y, 100, 30);
+
+            // 添加事件按钮和删除按钮并排放置
+            int buttonWidth = 120;
+            int buttonSpacing = 10;
+            _addEventButton.Bounds = new Rectangle(_bounds.X + 10, y, buttonWidth, 30);
+            _deleteButton.Bounds = new Rectangle(_bounds.X + buttonWidth + buttonSpacing + 10, y, buttonWidth, 30);
+
             y += 40;
             _nameTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
             y += 60;

@@ -31,6 +31,15 @@ namespace SpineEditor.UI.UISystem
         public event EventHandler<FrameEvent> OnEventSelected;
         public event EventHandler<float> OnTimeChanged;
 
+        /// <summary>
+        /// 禁用上下文菜单
+        /// </summary>
+        public void DisableContextMenu()
+        {
+            // 禁用事件轨道面板的上下文菜单
+            _eventTrackPanel.DisableContextMenu();
+        }
+
         public TimelineControlNew(GraphicsDevice graphicsDevice, SpriteFont font)
         {
             // 初始化纹理

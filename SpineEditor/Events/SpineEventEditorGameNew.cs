@@ -179,6 +179,9 @@ namespace SpineEditor.Events
                 _propertyPanel.SetSelectedEvent(evt);
             };
 
+            // 禁用时间轴上的右键菜单，改为使用属性面板上的按钮
+            _timelineControl.DisableContextMenu();
+
             // 设置时间变化处理
             _timelineControl.OnTimeChanged += (sender, time) => {
                 _eventEditor.CurrentTime = time;

@@ -42,9 +42,22 @@ namespace SpineEditor.UI
         public FrameEvent SelectedEvent => _selectedEvent;
 
         /// <summary>
+        /// 是否启用上下文菜单
+        /// </summary>
+        private bool _contextMenuEnabled = true;
+
+        /// <summary>
         /// 事件选中委托
         /// </summary>
         public event EventHandler<FrameEvent> OnEventSelected;
+
+        /// <summary>
+        /// 禁用上下文菜单
+        /// </summary>
+        public void DisableContextMenu()
+        {
+            _contextMenuEnabled = false;
+        }
 
         /// <summary>
         /// 创建时间轴控件
@@ -266,8 +279,8 @@ namespace SpineEditor.UI
                     }
                 }
 
-                // 处理右键点击，显示上下文菜单
-                if (_prevMouseState.RightButton == ButtonState.Released && mouseState.RightButton == ButtonState.Pressed)
+                // 处理右键点击，显示上下文菜单（如果启用）
+                if (_contextMenuEnabled && _prevMouseState.RightButton == ButtonState.Released && mouseState.RightButton == ButtonState.Pressed)
                 {
                     // 保存右键点击位置的时间
                     _contextMenuTime = clickTime;
