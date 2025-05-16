@@ -131,7 +131,7 @@ namespace SpineEditor.Events
             _propertyPanel.SetBounds(new Rectangle(GraphicsDevice.Viewport.Width - 300, 0, 300, GraphicsDevice.Viewport.Height - 200));
 
             // 创建左侧面板
-            int leftPanelWidth = 250;
+            int leftPanelWidth = 280; // 增加面板宽度
             _leftPanel = new LeftPanel(GraphicsDevice, _font,
                 new Rectangle(0, 0, leftPanelWidth, GraphicsDevice.Viewport.Height - 200));
 

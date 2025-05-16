@@ -80,29 +80,30 @@ namespace SpineEditor.UI
 
             // 计算各区域的位置和大小
             int padding = 10;
-            int sectionSpacing = 20;
-            int controlHeight = 150;
-            
+            int sectionSpacing = 15;
+            int infoHeight = 120; // 增加信息区域高度
+            int controlHeight = 140;
+
             // 信息区域 - 顶部
             _infoArea = new Rectangle(
-                bounds.X + padding, 
-                bounds.Y + padding, 
-                bounds.Width - padding * 2, 
-                100);
-            
+                bounds.X + padding,
+                bounds.Y + padding + 20, // 增加顶部间距，避免文字重叠
+                bounds.Width - padding * 2,
+                infoHeight);
+
             // 控制区域 - 中间
             _controlArea = new Rectangle(
-                bounds.X + padding, 
-                _infoArea.Y + _infoArea.Height + sectionSpacing, 
-                bounds.Width - padding * 2, 
+                bounds.X + padding,
+                _infoArea.Y + _infoArea.Height + sectionSpacing,
+                bounds.Width - padding * 2,
                 controlHeight);
-            
+
             // 动画列表区域 - 底部，占据剩余空间
             _animationArea = new Rectangle(
-                bounds.X + padding, 
-                _controlArea.Y + _controlArea.Height + sectionSpacing, 
-                bounds.Width - padding * 2, 
-                bounds.Height - _infoArea.Height - controlHeight - sectionSpacing * 3 - padding * 2);
+                bounds.X + padding,
+                _controlArea.Y + _controlArea.Height + sectionSpacing,
+                bounds.Width - padding * 2,
+                bounds.Height - _infoArea.Height - controlHeight - sectionSpacing * 3 - padding * 2 - 20);
 
             // 创建控件
             InitializeControls();
@@ -115,35 +116,39 @@ namespace SpineEditor.UI
         /// </summary>
         private void InitializeControls()
         {
-            int buttonWidth = 80;
+            int buttonWidth = 100; // 增加按钮宽度
             int buttonHeight = 30;
-            int buttonSpacing = 10;
+            int buttonSpacing = 15;
+            int labelWidth = 50; // 标签宽度
+            int inputWidth = buttonWidth - labelWidth; // 输入框宽度
+
+            // 控制区域内部布局
             int startX = _controlArea.X + (_controlArea.Width - buttonWidth) / 2;
-            int startY = _controlArea.Y + 30;
+            int startY = _controlArea.Y + 25; // 减少顶部间距
 
             // 创建播放/暂停按钮
-            _playPauseButton = new Button(_graphicsDevice, "Play", 
+            _playPauseButton = new Button(_graphicsDevice, "Pause",
                 new Rectangle(startX, startY, buttonWidth, buttonHeight));
             startY += buttonHeight + buttonSpacing;
 
             // 创建重置按钮
-            _resetButton = new Button(_graphicsDevice, "Reset", 
+            _resetButton = new Button(_graphicsDevice, "Reset",
                 new Rectangle(startX, startY, buttonWidth, buttonHeight));
             startY += buttonHeight + buttonSpacing;
 
-            // 创建速度文本框
-            _speedTextBox = new TextBox(_graphicsDevice, "Speed", "1.0", 
+            // 创建速度文本框 - 左侧标签，右侧输入框
+            _speedTextBox = new TextBox(_graphicsDevice, "Speed", "1.0",
                 new Rectangle(startX, startY, buttonWidth, buttonHeight));
 
             // 创建动画列表
-            _animationList = new AnimationListBox(_graphicsDevice, _font, 
+            _animationList = new AnimationListBox(_graphicsDevice, _font,
                 new List<string>(), _animationArea);
 
             // 设置事件处理
             _playPauseButton.Click += (sender, e) => PlayPauseClicked?.Invoke(this, EventArgs.Empty);
             _resetButton.Click += (sender, e) => ResetClicked?.Invoke(this, EventArgs.Empty);
             _speedTextBox.TextChanged += (sender, e) => SpeedChanged?.Invoke(this, _speedTextBox.Text);
-            _animationList.SelectedIndexChanged += (sender, e) => 
+            _animationList.SelectedIndexChanged += (sender, e) =>
             {
                 if (_animationList.SelectedItem != null)
                 {
@@ -229,34 +234,73 @@ namespace SpineEditor.UI
             spriteBatch.Draw(_texture, _infoArea, infoBackgroundColor);
             DrawBorder(spriteBatch, _infoArea, new Color(80, 80, 80), 1);
 
-            // 绘制信息文本
-            Vector2 textPos = new Vector2(_infoArea.X + 10, _infoArea.Y + 10);
-            float lineHeight = _font.MeasureString("A").Y + 5;
-
+            // 绘制信息区域标题
             spriteBatch.DrawString(_font, "信息", new Vector2(_infoArea.X + 10, _infoArea.Y - 20), Color.White);
-            
-            spriteBatch.DrawString(_font, $"当前时间: {_currentTime} / {_totalTime}", textPos, Color.White);
-            textPos.Y += lineHeight;
-            
-            spriteBatch.DrawString(_font, $"当前动画: {_currentAnimation}", textPos, Color.White);
-            textPos.Y += lineHeight;
-            
-            spriteBatch.DrawString(_font, $"事件数量: {_eventCount}", textPos, Color.White);
-            textPos.Y += lineHeight;
-            
-            spriteBatch.DrawString(_font, $"缩放比例: {_scale:F2}", textPos, Color.White);
+
+            // 绘制信息文本
+            float lineHeight = _font.MeasureString("A").Y + 8; // 增加行间距
+
+            // 第一行 - 当前时间
+            Vector2 labelPos = new Vector2(_infoArea.X + 10, _infoArea.Y + 15);
+            Vector2 valuePos = new Vector2(_infoArea.X + 90, _infoArea.Y + 15); // 值的位置右对齐
+
+            spriteBatch.DrawString(_font, "当前时间:", labelPos, Color.LightGray);
+            spriteBatch.DrawString(_font, $"{_currentTime} / {_totalTime}", valuePos, Color.White);
+
+            // 第二行 - 当前动画
+            labelPos.Y += lineHeight;
+            valuePos.Y += lineHeight;
+            spriteBatch.DrawString(_font, "当前动画:", labelPos, Color.LightGray);
+            spriteBatch.DrawString(_font, _currentAnimation, valuePos, Color.White);
+
+            // 第三行 - 事件数量
+            labelPos.Y += lineHeight;
+            valuePos.Y += lineHeight;
+            spriteBatch.DrawString(_font, "事件数量:", labelPos, Color.LightGray);
+            spriteBatch.DrawString(_font, _eventCount.ToString(), valuePos, Color.White);
+
+            // 第四行 - 缩放比例
+            labelPos.Y += lineHeight;
+            valuePos.Y += lineHeight;
+            spriteBatch.DrawString(_font, "缩放比例:", labelPos, Color.LightGray);
+            spriteBatch.DrawString(_font, _scale.ToString("F2"), valuePos, Color.White);
 
             // 绘制控制区域
             Color controlBackgroundColor = new Color(50, 50, 50);
             spriteBatch.Draw(_texture, _controlArea, controlBackgroundColor);
             DrawBorder(spriteBatch, _controlArea, new Color(80, 80, 80), 1);
-            
+
             // 绘制控制区域标题
             spriteBatch.DrawString(_font, "控制", new Vector2(_controlArea.X + 10, _controlArea.Y - 20), Color.White);
 
-            // 绘制控件
+            // 绘制控件 - 确保控件不会重叠
+            int controlSpacing = 15; // 控件之间的间距
+            int controlY = _controlArea.Y + 15;
+
+            // 调整按钮位置
+            _playPauseButton.Bounds = new Rectangle(
+                _controlArea.X + (_controlArea.Width - _playPauseButton.Bounds.Width) / 2,
+                controlY,
+                _playPauseButton.Bounds.Width,
+                _playPauseButton.Bounds.Height);
             _playPauseButton.Draw(spriteBatch, _font);
+
+            controlY += _playPauseButton.Bounds.Height + controlSpacing;
+
+            _resetButton.Bounds = new Rectangle(
+                _controlArea.X + (_controlArea.Width - _resetButton.Bounds.Width) / 2,
+                controlY,
+                _resetButton.Bounds.Width,
+                _resetButton.Bounds.Height);
             _resetButton.Draw(spriteBatch, _font);
+
+            controlY += _resetButton.Bounds.Height + controlSpacing;
+
+            _speedTextBox.Bounds = new Rectangle(
+                _controlArea.X + (_controlArea.Width - _speedTextBox.Bounds.Width) / 2,
+                controlY,
+                _speedTextBox.Bounds.Width,
+                _speedTextBox.Bounds.Height);
             _speedTextBox.Draw(spriteBatch, _font);
 
             // 绘制动画列表区域标题
