@@ -158,6 +158,30 @@ namespace SpineEditor.Events
 
             // 设置按钮事件
             _loadButton.Click += (sender, e) => {
+                // 如果当前文件路径是默认的，则尝试查找与skel文件同目录下的事件文件
+                if (_currentFilePath == "events.json" && !string.IsNullOrEmpty(_eventEditor.SkeletonDataFilePath))
+                {
+                    string directory = Path.GetDirectoryName(_eventEditor.SkeletonDataFilePath);
+                    string fileNameWithoutExt = Path.GetFileNameWithoutExtension(_eventEditor.SkeletonDataFilePath);
+                    string possibleEventFile = Path.Combine(directory, fileNameWithoutExt + "_events.json");
+
+                    if (File.Exists(possibleEventFile))
+                    {
+                        _currentFilePath = possibleEventFile;
+                        Console.WriteLine($"找到事件文件: {_currentFilePath}");
+                    }
+                    else
+                    {
+                        // 尝试查找目录中的任何json文件
+                        string[] jsonFiles = Directory.GetFiles(directory, "*_events.json");
+                        if (jsonFiles.Length > 0)
+                        {
+                            _currentFilePath = jsonFiles[0];
+                            Console.WriteLine($"在目录中找到事件文件: {_currentFilePath}");
+                        }
+                    }
+                }
+
                 // 加载事件数据
                 if (_eventEditor.LoadEventsFromJson(_currentFilePath))
                 {
@@ -178,6 +202,14 @@ namespace SpineEditor.Events
 
             _saveButton.Click += (sender, e) => {
                 // 保存事件数据
+                // 如果当前文件路径是默认的，则修改为skel文件同目录下的同名json文件
+                if (_currentFilePath == "events.json" && !string.IsNullOrEmpty(_eventEditor.SkeletonDataFilePath))
+                {
+                    string directory = Path.GetDirectoryName(_eventEditor.SkeletonDataFilePath);
+                    string fileNameWithoutExt = Path.GetFileNameWithoutExtension(_eventEditor.SkeletonDataFilePath);
+                    _currentFilePath = Path.Combine(directory, fileNameWithoutExt + "_events.json");
+                }
+
                 _eventEditor.SaveEventsToJson(_currentFilePath, _eventEditor.CurrentAnimation);
                 Console.WriteLine($"事件数据已保存到 {_currentFilePath}");
             };
@@ -384,9 +416,39 @@ namespace SpineEditor.Events
                 }
             }
 
+            // 如果只找到了skel/json文件，尝试自动查找对应的atlas文件
+            if (atlasFile == null && skelFile != null)
+            {
+                string directory = Path.GetDirectoryName(skelFile);
+                string fileNameWithoutExt = Path.GetFileNameWithoutExtension(skelFile);
+
+                // 尝试在同一目录下查找同名的atlas文件
+                string possibleAtlasFile = Path.Combine(directory, fileNameWithoutExt + ".atlas");
+                if (File.Exists(possibleAtlasFile))
+                {
+                    atlasFile = possibleAtlasFile;
+                    Console.WriteLine($"自动找到atlas文件: {atlasFile}");
+                }
+                else
+                {
+                    // 尝试查找目录中的任何atlas文件
+                    string[] atlasFiles = Directory.GetFiles(directory, "*.atlas");
+                    if (atlasFiles.Length > 0)
+                    {
+                        atlasFile = atlasFiles[0];
+                        Console.WriteLine($"在目录中找到atlas文件: {atlasFile}");
+                    }
+                }
+            }
+
             // 如果找到了.atlas和.skel/.json文件，则加载它们
             if (atlasFile != null && skelFile != null)
             {
+                // 设置当前文件路径为skel文件所在目录下的同名json文件
+                string directory = Path.GetDirectoryName(skelFile);
+                string fileNameWithoutExt = Path.GetFileNameWithoutExtension(skelFile);
+                _currentFilePath = Path.Combine(directory, fileNameWithoutExt + "_events.json");
+
                 LoadSpineAnimation(atlasFile, skelFile);
             }
         }
@@ -431,6 +493,31 @@ namespace SpineEditor.Events
                         _eventEditor.IsPlaying = false; // 初始暂停
                         float duration = _eventEditor.AnimationDuration;
                         _timelineControl.SetDuration(duration);
+
+                        // 尝试加载事件文件
+                        if (!string.IsNullOrEmpty(_currentFilePath) && File.Exists(_currentFilePath))
+                        {
+                            if (_eventEditor.LoadEventsFromJson(_currentFilePath))
+                            {
+                                Console.WriteLine($"自动加载事件文件成功: {_currentFilePath}");
+                            }
+                        }
+                        else
+                        {
+                            // 尝试查找与skel文件同目录下的事件文件
+                            string directory = Path.GetDirectoryName(skelPath);
+                            string fileNameWithoutExt = Path.GetFileNameWithoutExtension(skelPath);
+                            string possibleEventFile = Path.Combine(directory, fileNameWithoutExt + "_events.json");
+
+                            if (File.Exists(possibleEventFile))
+                            {
+                                _currentFilePath = possibleEventFile;
+                                if (_eventEditor.LoadEventsFromJson(_currentFilePath))
+                                {
+                                    Console.WriteLine($"自动加载事件文件成功: {_currentFilePath}");
+                                }
+                            }
+                        }
 
                         // 更新时间轴上的事件
                         _timelineControl.GetEvents().Clear();

@@ -70,6 +70,11 @@ namespace SpineEditor.Events
         public List<FrameEvent> Events => _events;
 
         /// <summary>
+        /// 获取骨骼数据文件路径
+        /// </summary>
+        public string SkeletonDataFilePath => _skeletonDataFilePath;
+
+        /// <summary>
         /// 获取当前动画的持续时间
         /// </summary>
         public float AnimationDuration
