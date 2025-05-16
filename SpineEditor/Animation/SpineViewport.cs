@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using SpineEditor.Utils;
 
 namespace SpineEditor.Animation
 {
@@ -170,19 +171,19 @@ namespace SpineEditor.Animation
             for (float x = startX; x < viewWidth; x += scaledGridSize)
             {
                 Color lineColor = Math.Abs(x - origin.X) < 1 ? _gridAxisColor : _gridColor;
-                spriteBatch.Draw(_pixel, new Rectangle((int)x, 0, 1, viewHeight), lineColor);
+                DrawingUtils.DrawVerticalLine(spriteBatch, (int)x, 0, viewHeight, lineColor);
             }
 
             // 绘制水平网格线
             for (float y = startY; y < viewHeight; y += scaledGridSize)
             {
                 Color lineColor = Math.Abs(y - origin.Y) < 1 ? _gridAxisColor : _gridColor;
-                spriteBatch.Draw(_pixel, new Rectangle(0, (int)y, viewWidth, 1), lineColor);
+                DrawingUtils.DrawHorizontalLine(spriteBatch, 0, (int)y, viewWidth, lineColor);
             }
 
             // 绘制原点标记
             int markerSize = 10;
-            spriteBatch.Draw(_pixel, new Rectangle((int)origin.X - markerSize / 2, (int)origin.Y - markerSize / 2, markerSize, markerSize), new Color(255, 0, 0, 150));
+            DrawingUtils.DrawMarker(spriteBatch, origin, markerSize, new Color(255, 0, 0, 150));
         }
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SpineEditor.Events;
+using SpineEditor.Utils;
 
 namespace SpineEditor.UI
 {
@@ -55,6 +56,10 @@ namespace SpineEditor.UI
             _background = new Texture2D(graphicsDevice, 1, 1);
             _background.SetData(new[] { new Color(50, 50, 50) });
 
+            // 初始化绘制工具类
+            DrawingUtils.Initialize(graphicsDevice);
+
+            // 使用绘制工具类的像素纹理
             _pixel = new Texture2D(graphicsDevice, 1, 1);
             _pixel.SetData(new[] { Color.White });
 
@@ -266,7 +271,7 @@ namespace SpineEditor.UI
         public void Draw(SpriteBatch spriteBatch)
         {
             // 绘制背景
-            spriteBatch.Draw(_background, _bounds, Color.White);
+            DrawingUtils.DrawTexture(spriteBatch, _background, _bounds, Color.White);
 
             // 绘制时间刻度
             float timeStep = GetTimeStep();
@@ -276,7 +281,7 @@ namespace SpineEditor.UI
                 if (x >= _bounds.X && x <= _bounds.X + _bounds.Width)
                 {
                     // 绘制刻度线
-                    spriteBatch.Draw(_pixel, new Rectangle((int)x, _bounds.Y + 20, 1, 10), Color.Gray);
+                    DrawingUtils.DrawVerticalLine(spriteBatch, (int)x, _bounds.Y + 20, 10, Color.Gray);
 
                     // 绘制时间文本
                     string timeText = t.ToString("0.00");
@@ -292,7 +297,7 @@ namespace SpineEditor.UI
                 if (x >= _bounds.X - 10 && x <= _bounds.X + _bounds.Width + 10)
                 {
                     Color color = (evt == _selectedEvent) ? Color.Yellow : Color.White;
-                    spriteBatch.Draw(_eventMarker, new Vector2(x - 5, _bounds.Y + 30), color);
+                    DrawingUtils.DrawTexture(spriteBatch, _eventMarker, new Vector2(x - 5, _bounds.Y + 30), color);
 
                     // 绘制事件名称
                     Vector2 textSize = _font.MeasureString(evt.Name);
@@ -304,8 +309,8 @@ namespace SpineEditor.UI
             float currentX = XFromTime(_eventEditor.CurrentTime);
             if (currentX >= _bounds.X - 5 && currentX <= _bounds.X + _bounds.Width + 5)
             {
-                spriteBatch.Draw(_playheadMarker, new Vector2(currentX - 4, _bounds.Y + 5), Color.White);
-                spriteBatch.Draw(_pixel, new Rectangle((int)currentX, _bounds.Y + 20, 1, _bounds.Height - 20), Color.Yellow);
+                DrawingUtils.DrawTexture(spriteBatch, _playheadMarker, new Vector2(currentX - 4, _bounds.Y + 5), Color.White);
+                DrawingUtils.DrawVerticalLine(spriteBatch, (int)currentX, _bounds.Y + 20, _bounds.Height - 20, Color.Yellow);
             }
 
             // 绘制上下文菜单

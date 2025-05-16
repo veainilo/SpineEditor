@@ -34,6 +34,7 @@
     <Compile Include="Animation\**\*.cs" />
     <Compile Include="Events\**\*.cs" />
     <Compile Include="UI\**\*.cs" />
+    <Compile Include="Utils\**\*.cs" />
   </ItemGroup>
   <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
     <Message Text="Restoring dotnet tools" Importance="High" />
