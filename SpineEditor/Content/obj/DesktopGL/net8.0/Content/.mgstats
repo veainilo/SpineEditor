@@ -1,2 +1,3 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
+"T:/midplat/monogame/SpineEditor/Content/Font.spritefont","T:/midplat/monogame/SpineEditor/Content/bin/DesktopGL/Content/Font.xnb","FontDescriptionProcessor","SpriteFontContent",2233,1008153,0.3049402
 "T:/midplat/monogame/SpineEditor/Content/shaders/SpineEffect.fx","T:/midplat/monogame/SpineEditor/Content/bin/DesktopGL/Content/shaders/SpineEffect.xnb","EffectProcessor","CompiledEffectContent",1607,2773,0.6345354

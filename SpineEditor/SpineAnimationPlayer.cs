@@ -134,7 +134,7 @@ namespace SpineEditor
         /// <param name="scale">缩放比例</param>
         /// <param name="position">位置</param>
         /// <returns>是否加载成功</returns>
-        public bool LoadAnimation(string atlasPath, string skeletonPath, float scale = 1.0f, Vector2? position = null)
+        public virtual bool LoadAnimation(string atlasPath, string skeletonPath, float scale = 1.0f, Vector2? position = null)
         {
             try
             {
@@ -235,7 +235,7 @@ namespace SpineEditor
         /// 更新动画
         /// </summary>
         /// <param name="deltaTime">时间增量（秒）</param>
-        public void Update(float deltaTime)
+        public virtual void Update(float deltaTime)
         {
             if (_animationState == null || _skeleton == null)
                 return;

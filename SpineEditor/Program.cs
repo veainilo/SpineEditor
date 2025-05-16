@@ -1,2 +1,14 @@
-﻿using var game = new SpineEditor.Game1();
-game.Run();
+﻿using System;
+
+namespace SpineEditor
+{
+    public static class Program
+    {
+        [STAThread]
+        static void Main()
+        {
+            using (var game = new SpineEventEditorGame())
+                game.Run();
+        }
+    }
+}

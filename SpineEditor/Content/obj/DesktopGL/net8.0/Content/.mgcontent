@@ -4,9 +4,11 @@
   <Platform>DesktopGL</Platform>
   <Config />
   <SourceFiles>
+    <File>T:/midplat/monogame/SpineEditor/Content/Font.spritefont</File>
     <File>T:/midplat/monogame/SpineEditor/Content/shaders/SpineEffect.fx</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
   </DestFiles>
 </SourceFileCollection>
