@@ -17,6 +17,7 @@ namespace SpineEditor
         private SpriteBatch _spriteBatch;
 
         private SpineEventEditor _eventEditor;
+        private SpineViewport _viewport;
         private TimelineControl _timelineControl;
         private EventPropertyPanel _propertyPanel;
         private SpriteFont _font;
@@ -75,7 +76,7 @@ namespace SpineEditor
                 atlasPath,
                 skelPath,
                 0.5f,
-                new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height / 3)
+                new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height / 2)
             );
 
             if (!success)
@@ -84,6 +85,9 @@ namespace SpineEditor
                 Exit();
                 return;
             }
+
+            // 创建视口控件
+            _viewport = new SpineViewport(_eventEditor, GraphicsDevice, _font);
 
             // 创建时间轴控件
             _timelineControl = new TimelineControl(_eventEditor, GraphicsDevice, _font);
@@ -197,6 +201,9 @@ namespace SpineEditor
             _speedTextBox.Update(gameTime);
             _animationDropdown.Update();
 
+            // 更新视口控件
+            _viewport.Update(gameTime);
+
             // 更新时间轴控件
             _timelineControl.Update(gameTime);
 
@@ -231,6 +238,9 @@ namespace SpineEditor
             _resetButton.Draw(_spriteBatch, _font);
             _speedTextBox.Draw(_spriteBatch, _font);
             _animationDropdown.Draw(_spriteBatch);
+
+            // 绘制视口控件
+            _viewport.Draw(_spriteBatch);
 
             // 绘制当前时间
             string timeText = $"Current Time: {_eventEditor.CurrentTime:0.000} / {_eventEditor.AnimationDuration:0.000}";

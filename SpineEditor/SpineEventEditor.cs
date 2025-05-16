@@ -200,13 +200,16 @@ namespace SpineEditor
         /// <param name="animationName">动画名称</param>
         public void SaveEventsToJson(string filePath, string animationName)
         {
-            var data = new AnimationEventData
-            {
-                AnimationName = animationName,
-                SpineFileName = Path.GetFileName(_skeletonDataFilePath),
-                Events = _events
-            };
+            // 加载现有数据（如果存在）
+            AnimationEventData data = File.Exists(filePath)
+                ? AnimationEventData.LoadFromJson(filePath)
+                : new AnimationEventData();
 
+            // 设置当前动画的事件
+            data.SetEventsForAnimation(animationName, _events);
+            data.SpineFileName = Path.GetFileName(_skeletonDataFilePath);
+
+            // 保存数据
             data.SaveToJson(filePath);
         }
 
@@ -220,8 +223,19 @@ namespace SpineEditor
             var data = AnimationEventData.LoadFromJson(filePath);
             if (data != null)
             {
-                _events = data.Events;
-                return true;
+                // 获取当前动画的事件
+                string currentAnimation = CurrentAnimation;
+                if (!string.IsNullOrEmpty(currentAnimation))
+                {
+                    _events = data.GetEventsForAnimation(currentAnimation);
+                    return true;
+                }
+                else if (data.Events != null && data.Events.Count > 0)
+                {
+                    // 兼容旧版本
+                    _events = data.Events;
+                    return true;
+                }
             }
             return false;
         }

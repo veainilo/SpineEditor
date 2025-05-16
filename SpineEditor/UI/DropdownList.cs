@@ -96,11 +96,11 @@ namespace SpineEditor.UI
             _items = items;
             _bounds = bounds;
             _selectedIndex = items.Count > 0 ? 0 : -1;
-            
+
             // 创建纹理
             _texture = new Texture2D(graphicsDevice, 1, 1);
             _texture.SetData(new[] { Color.White });
-            
+
             _prevMouseState = Mouse.GetState();
         }
 
@@ -110,30 +110,32 @@ namespace SpineEditor.UI
         public void Update()
         {
             MouseState mouseState = Mouse.GetState();
-            
+
+            // 计算下拉列表的区域（即使未展开也计算，用于检测点击）
+            int itemHeight = 30;
+            int visibleItems = Math.Min(_items.Count, _maxVisibleItems);
+            Rectangle dropdownRect = new Rectangle(_bounds.X, _bounds.Y + _bounds.Height, _bounds.Width, itemHeight * visibleItems);
+
             // 检查鼠标是否悬停在控件上
             _isHovered = _bounds.Contains(mouseState.Position);
-            
-            // 处理点击事件
+
+            // 处理主控件的点击事件
             if (_isHovered && mouseState.LeftButton == ButtonState.Released && _prevMouseState.LeftButton == ButtonState.Pressed)
             {
                 _isExpanded = !_isExpanded;
             }
-            
+
             // 如果下拉列表展开，处理项目选择
             if (_isExpanded)
             {
-                // 计算下拉列表的区域
-                int itemHeight = 30;
-                int visibleItems = Math.Min(_items.Count, _maxVisibleItems);
-                Rectangle dropdownRect = new Rectangle(_bounds.X, _bounds.Y + _bounds.Height, _bounds.Width, itemHeight * visibleItems);
-                
                 // 检查鼠标是否在下拉列表区域内
-                if (dropdownRect.Contains(mouseState.Position))
+                bool isMouseOverDropdown = dropdownRect.Contains(mouseState.Position);
+
+                if (isMouseOverDropdown)
                 {
                     // 计算鼠标悬停的项目索引
                     int hoveredIndex = _scrollOffset + (mouseState.Y - dropdownRect.Y) / itemHeight;
-                    
+
                     // 如果点击了项目，选中它并关闭下拉列表
                     if (mouseState.LeftButton == ButtonState.Released && _prevMouseState.LeftButton == ButtonState.Pressed)
                     {
@@ -143,24 +145,21 @@ namespace SpineEditor.UI
                             _isExpanded = false;
                         }
                     }
-                }
-                // 如果点击了下拉列表外部，关闭下拉列表
-                else if (mouseState.LeftButton == ButtonState.Released && _prevMouseState.LeftButton == ButtonState.Pressed)
-                {
-                    _isExpanded = false;
-                }
-                
-                // 处理滚动
-                if (dropdownRect.Contains(mouseState.Position))
-                {
+
+                    // 处理滚动
                     if (mouseState.ScrollWheelValue != _prevMouseState.ScrollWheelValue)
                     {
                         int scrollDelta = (mouseState.ScrollWheelValue - _prevMouseState.ScrollWheelValue) / 120;
                         _scrollOffset = MathHelper.Clamp(_scrollOffset - scrollDelta, 0, Math.Max(0, _items.Count - _maxVisibleItems));
                     }
                 }
+                // 如果点击了下拉列表外部，关闭下拉列表
+                else if (mouseState.LeftButton == ButtonState.Released && _prevMouseState.LeftButton == ButtonState.Pressed)
+                {
+                    _isExpanded = false;
+                }
             }
-            
+
             _prevMouseState = mouseState;
         }
 
@@ -175,15 +174,15 @@ namespace SpineEditor.UI
             {
                 spriteBatch.DrawString(_font, _label, new Vector2(_bounds.X, _bounds.Y - 20), Color.White);
             }
-            
+
             // 绘制下拉列表框
             Color backgroundColor = _isHovered ? new Color(60, 60, 60) : new Color(40, 40, 40);
             spriteBatch.Draw(_texture, _bounds, backgroundColor);
-            
+
             // 绘制边框
             Color borderColor = _isHovered ? Color.White : new Color(100, 100, 100);
             DrawBorder(spriteBatch, _bounds, borderColor, 1);
-            
+
             // 绘制选中项
             if (_selectedIndex >= 0 && _selectedIndex < _items.Count)
             {
@@ -202,23 +201,23 @@ namespace SpineEditor.UI
                 }
                 spriteBatch.DrawString(_font, text, new Vector2(_bounds.X + 5, _bounds.Y + (_bounds.Height - _font.MeasureString(text).Y) / 2), Color.White);
             }
-            
+
             // 绘制下拉箭头
             DrawArrow(spriteBatch, new Vector2(_bounds.X + _bounds.Width - 20, _bounds.Y + _bounds.Height / 2), _isExpanded);
-            
+
             // 如果下拉列表展开，绘制项目列表
             if (_isExpanded && _items.Count > 0)
             {
                 int itemHeight = 30;
                 int visibleItems = Math.Min(_items.Count, _maxVisibleItems);
                 Rectangle dropdownRect = new Rectangle(_bounds.X, _bounds.Y + _bounds.Height, _bounds.Width, itemHeight * visibleItems);
-                
+
                 // 绘制下拉列表背景
                 spriteBatch.Draw(_texture, dropdownRect, new Color(50, 50, 50));
-                
+
                 // 绘制边框
                 DrawBorder(spriteBatch, dropdownRect, new Color(100, 100, 100), 1);
-                
+
                 // 绘制项目
                 for (int i = 0; i < visibleItems; i++)
                 {
@@ -226,15 +225,15 @@ namespace SpineEditor.UI
                     if (itemIndex < _items.Count)
                     {
                         Rectangle itemRect = new Rectangle(dropdownRect.X, dropdownRect.Y + i * itemHeight, dropdownRect.Width, itemHeight);
-                        
+
                         // 检查鼠标是否悬停在项目上
                         MouseState mouseState = Mouse.GetState();
                         bool isItemHovered = itemRect.Contains(mouseState.Position);
-                        
+
                         // 绘制项目背景
                         Color itemBackgroundColor = isItemHovered ? new Color(70, 70, 70) : (itemIndex == _selectedIndex ? new Color(60, 60, 60) : new Color(50, 50, 50));
                         spriteBatch.Draw(_texture, itemRect, itemBackgroundColor);
-                        
+
                         // 绘制项目文本
                         string text = _items[itemIndex];
                         // 如果文本太长，截断它
@@ -252,14 +251,14 @@ namespace SpineEditor.UI
                         spriteBatch.DrawString(_font, text, new Vector2(itemRect.X + 5, itemRect.Y + (itemRect.Height - _font.MeasureString(text).Y) / 2), Color.White);
                     }
                 }
-                
+
                 // 如果有滚动条，绘制滚动条
                 if (_items.Count > _maxVisibleItems)
                 {
                     int scrollBarWidth = 10;
                     Rectangle scrollBarRect = new Rectangle(dropdownRect.X + dropdownRect.Width - scrollBarWidth, dropdownRect.Y, scrollBarWidth, dropdownRect.Height);
                     spriteBatch.Draw(_texture, scrollBarRect, new Color(30, 30, 30));
-                    
+
                     // 计算滑块的大小和位置
                     float thumbRatio = (float)_maxVisibleItems / _items.Count;
                     int thumbHeight = (int)(dropdownRect.Height * thumbRatio);
