@@ -69,9 +69,6 @@ namespace SpineEditor.UI
         // 拖拽操作相关
         private bool _isDragging = false;
         private DragOperationType _dragOperation = DragOperationType.None;
-        private Vector2 _dragStartPosition;
-        private Vector2 _dragStartMousePosition;
-        private AttackShape _originalShape;
         private AttackShape _currentShape;
         private Vector2 _spinePosition;
         private float _spineScale;
@@ -81,36 +78,13 @@ namespace SpineEditor.UI
         private const int DRAG_HANDLE_SIZE = 8;
         private const float MIN_SHAPE_SIZE = 10.0f;
 
-        // 拖拽操作的缩放因子，用于调整拖拽灵敏度
-        private const float DRAG_SCALE_FACTOR = 0.05f; // 极大幅度降低拖拽灵敏度
-
         /// <summary>
         /// 获取或设置当前正在拖拽的形状
         /// </summary>
         public AttackShape CurrentShape
         {
             get => _currentShape;
-            set
-            {
-                _currentShape = value;
-                if (value != null)
-                {
-                    // 创建原始形状的副本，用于计算拖拽操作
-                    _originalShape = new AttackShape
-                    {
-                        Type = value.Type,
-                        X = value.X,
-                        Y = value.Y,
-                        Width = value.Width,
-                        Height = value.Height,
-                        Rotation = value.Rotation
-                    };
-                }
-                else
-                {
-                    _originalShape = null;
-                }
-            }
+            set => _currentShape = value;
         }
 
         /// <summary>
@@ -134,11 +108,10 @@ namespace SpineEditor.UI
         /// <summary>
         /// 更新拖拽操作
         /// </summary>
-        /// <param name="gameTime">游戏时间</param>
         /// <param name="spinePosition">Spine动画位置</param>
         /// <param name="spineScale">Spine动画缩放</param>
         /// <returns>是否处理了鼠标事件</returns>
-        public bool Update(GameTime gameTime, Vector2 spinePosition, float spineScale)
+        public bool Update(Vector2 spinePosition, float spineScale)
         {
             if (_currentShape == null)
                 return false;
@@ -159,8 +132,6 @@ namespace SpineEditor.UI
                     if (_dragOperation != DragOperationType.None)
                     {
                         _isDragging = true;
-                        _dragStartPosition = new Vector2(_currentShape.X, _currentShape.Y);
-                        _dragStartMousePosition = mousePosition;
                         return true;
                     }
                 }
@@ -176,88 +147,128 @@ namespace SpineEditor.UI
                     return true;
                 }
 
-                // 计算鼠标移动距离（相对于Spine坐标系）
-                Vector2 mouseDelta = mousePosition - _dragStartMousePosition;
-
-                // 应用缩放因子来降低拖拽灵敏度，并考虑Spine缩放
-                // 注意：这里不除以_spineScale，因为我们需要在屏幕坐标系中计算移动距离
-                float deltaX = mouseDelta.X * DRAG_SCALE_FACTOR;
-                float deltaY = mouseDelta.Y * DRAG_SCALE_FACTOR;
-
-                // 根据拖拽操作类型更新形状
-                // 将屏幕坐标转换为Spine坐标系
-                float spineX = deltaX / _spineScale;
-                float spineY = deltaY / _spineScale;
+                // 直接计算鼠标在Spine坐标系中的位置
+                // 将鼠标屏幕坐标转换为相对于Spine原点的坐标
+                Vector2 spineMousePosition = new Vector2(
+                    (mousePosition.X - _spinePosition.X) / _spineScale,
+                    (mousePosition.Y - _spinePosition.Y) / _spineScale
+                );
 
                 switch (_dragOperation)
                 {
                     case DragOperationType.Move:
-                        _currentShape.X = _originalShape.X + spineX;
-                        _currentShape.Y = _originalShape.Y + spineY;
+                        // 直接设置形状位置为鼠标位置
+                        _currentShape.X = spineMousePosition.X;
+                        _currentShape.Y = spineMousePosition.Y;
                         break;
 
                     case DragOperationType.ResizeRight:
-                        _currentShape.Width = Math.Max(MIN_SHAPE_SIZE, _originalShape.Width + spineX);
+                        {
+                            // 计算新宽度（右边缘到形状中心的距离的2倍）
+                            float centerToMouse = spineMousePosition.X - _currentShape.X;
+                            _currentShape.Width = Math.Max(MIN_SHAPE_SIZE, centerToMouse * 2);
+                        }
                         break;
 
                     case DragOperationType.ResizeLeft:
-                        float newWidth = Math.Max(MIN_SHAPE_SIZE, _originalShape.Width - spineX);
-                        float widthDiff = _originalShape.Width - newWidth;
-                        _currentShape.X = _originalShape.X + widthDiff;
-                        _currentShape.Width = newWidth;
+                        {
+                            // 计算新宽度（左边缘到形状中心的距离的2倍）
+                            float centerToMouse = _currentShape.X - spineMousePosition.X;
+                            float newWidth = Math.Max(MIN_SHAPE_SIZE, centerToMouse * 2);
+
+                            // 更新X位置，保持右边缘不变
+                            float oldRight = _currentShape.X + _currentShape.Width / 2;
+                            _currentShape.X = oldRight - newWidth / 2;
+                            _currentShape.Width = newWidth;
+                        }
                         break;
 
                     case DragOperationType.ResizeBottom:
-                        _currentShape.Height = Math.Max(MIN_SHAPE_SIZE, _originalShape.Height + spineY);
+                        {
+                            // 计算新高度（下边缘到形状中心的距离的2倍）
+                            float centerToMouse = spineMousePosition.Y - _currentShape.Y;
+                            _currentShape.Height = Math.Max(MIN_SHAPE_SIZE, centerToMouse * 2);
+                        }
                         break;
 
                     case DragOperationType.ResizeTop:
-                        float newHeight = Math.Max(MIN_SHAPE_SIZE, _originalShape.Height - spineY);
-                        float heightDiff = _originalShape.Height - newHeight;
-                        _currentShape.Y = _originalShape.Y + heightDiff;
-                        _currentShape.Height = newHeight;
+                        {
+                            // 计算新高度（上边缘到形状中心的距离的2倍）
+                            float centerToMouse = _currentShape.Y - spineMousePosition.Y;
+                            float newHeight = Math.Max(MIN_SHAPE_SIZE, centerToMouse * 2);
+
+                            // 更新Y位置，保持下边缘不变
+                            float oldBottom = _currentShape.Y + _currentShape.Height / 2;
+                            _currentShape.Y = oldBottom - newHeight / 2;
+                            _currentShape.Height = newHeight;
+                        }
                         break;
 
                     case DragOperationType.ResizeTopLeft:
-                        // 调整宽度
-                        newWidth = Math.Max(MIN_SHAPE_SIZE, _originalShape.Width - spineX);
-                        widthDiff = _originalShape.Width - newWidth;
-                        _currentShape.X = _originalShape.X + widthDiff;
-                        _currentShape.Width = newWidth;
+                        {
+                            // 调整宽度（左边缘到形状中心的距离的2倍）
+                            float centerToMouseX = _currentShape.X - spineMousePosition.X;
+                            float newWidth = Math.Max(MIN_SHAPE_SIZE, centerToMouseX * 2);
 
-                        // 调整高度
-                        newHeight = Math.Max(MIN_SHAPE_SIZE, _originalShape.Height - spineY);
-                        heightDiff = _originalShape.Height - newHeight;
-                        _currentShape.Y = _originalShape.Y + heightDiff;
-                        _currentShape.Height = newHeight;
+                            // 更新X位置，保持右边缘不变
+                            float oldRight = _currentShape.X + _currentShape.Width / 2;
+                            _currentShape.X = oldRight - newWidth / 2;
+                            _currentShape.Width = newWidth;
+
+                            // 调整高度（上边缘到形状中心的距离的2倍）
+                            float centerToMouseY = _currentShape.Y - spineMousePosition.Y;
+                            float newHeight = Math.Max(MIN_SHAPE_SIZE, centerToMouseY * 2);
+
+                            // 更新Y位置，保持下边缘不变
+                            float oldBottom = _currentShape.Y + _currentShape.Height / 2;
+                            _currentShape.Y = oldBottom - newHeight / 2;
+                            _currentShape.Height = newHeight;
+                        }
                         break;
 
                     case DragOperationType.ResizeTopRight:
-                        // 调整宽度
-                        _currentShape.Width = Math.Max(MIN_SHAPE_SIZE, _originalShape.Width + spineX);
+                        {
+                            // 调整宽度（右边缘到形状中心的距离的2倍）
+                            float centerToMouseX = spineMousePosition.X - _currentShape.X;
+                            _currentShape.Width = Math.Max(MIN_SHAPE_SIZE, centerToMouseX * 2);
 
-                        // 调整高度
-                        newHeight = Math.Max(MIN_SHAPE_SIZE, _originalShape.Height - spineY);
-                        heightDiff = _originalShape.Height - newHeight;
-                        _currentShape.Y = _originalShape.Y + heightDiff;
-                        _currentShape.Height = newHeight;
+                            // 调整高度（上边缘到形状中心的距离的2倍）
+                            float centerToMouseY = _currentShape.Y - spineMousePosition.Y;
+                            float newHeight = Math.Max(MIN_SHAPE_SIZE, centerToMouseY * 2);
+
+                            // 更新Y位置，保持下边缘不变
+                            float oldBottom = _currentShape.Y + _currentShape.Height / 2;
+                            _currentShape.Y = oldBottom - newHeight / 2;
+                            _currentShape.Height = newHeight;
+                        }
                         break;
 
                     case DragOperationType.ResizeBottomLeft:
-                        // 调整宽度
-                        newWidth = Math.Max(MIN_SHAPE_SIZE, _originalShape.Width - spineX);
-                        widthDiff = _originalShape.Width - newWidth;
-                        _currentShape.X = _originalShape.X + widthDiff;
-                        _currentShape.Width = newWidth;
+                        {
+                            // 调整宽度（左边缘到形状中心的距离的2倍）
+                            float centerToMouseX = _currentShape.X - spineMousePosition.X;
+                            float newWidth = Math.Max(MIN_SHAPE_SIZE, centerToMouseX * 2);
 
-                        // 调整高度
-                        _currentShape.Height = Math.Max(MIN_SHAPE_SIZE, _originalShape.Height + spineY);
+                            // 更新X位置，保持右边缘不变
+                            float oldRight = _currentShape.X + _currentShape.Width / 2;
+                            _currentShape.X = oldRight - newWidth / 2;
+                            _currentShape.Width = newWidth;
+
+                            // 调整高度（下边缘到形状中心的距离的2倍）
+                            float centerToMouseY = spineMousePosition.Y - _currentShape.Y;
+                            _currentShape.Height = Math.Max(MIN_SHAPE_SIZE, centerToMouseY * 2);
+                        }
                         break;
 
                     case DragOperationType.ResizeBottomRight:
-                        // 调整宽度和高度
-                        _currentShape.Width = Math.Max(MIN_SHAPE_SIZE, _originalShape.Width + spineX);
-                        _currentShape.Height = Math.Max(MIN_SHAPE_SIZE, _originalShape.Height + spineY);
+                        {
+                            // 调整宽度和高度
+                            float centerToMouseX = spineMousePosition.X - _currentShape.X;
+                            _currentShape.Width = Math.Max(MIN_SHAPE_SIZE, centerToMouseX * 2);
+
+                            float centerToMouseY = spineMousePosition.Y - _currentShape.Y;
+                            _currentShape.Height = Math.Max(MIN_SHAPE_SIZE, centerToMouseY * 2);
+                        }
                         break;
                 }
 
@@ -341,7 +352,7 @@ namespace SpineEditor.UI
         /// <param name="point">指定点</param>
         /// <param name="threshold">阈值</param>
         /// <returns>是否接近</returns>
-        private bool IsNearPoint(Vector2 position, Vector2 point, float threshold)
+        private static bool IsNearPoint(Vector2 position, Vector2 point, float threshold)
         {
             return Vector2.Distance(position, point) <= threshold;
         }
