@@ -155,15 +155,12 @@ namespace SpineEditor.UI
                 return;
 
             // 绘制列表框背景
-            Color backgroundColor = _isHovered ? new Color(60, 60, 60) : new Color(40, 40, 40);
+            Color backgroundColor = _isHovered ? new Color(60, 60, 60) : new Color(50, 50, 50);
             spriteBatch.Draw(_texture, _bounds, backgroundColor);
 
             // 绘制边框
-            Color borderColor = _isHovered ? Color.Yellow : new Color(150, 150, 150);
-            DrawBorder(spriteBatch, _bounds, borderColor, 2);
-
-            // 绘制标题
-            spriteBatch.DrawString(_font, "Animations", new Vector2(_bounds.X + 5, _bounds.Y - 25), Color.White);
+            Color borderColor = _isHovered ? new Color(120, 180, 210) : new Color(100, 100, 100);
+            DrawBorder(spriteBatch, _bounds, borderColor, 1);
 
             // 绘制列表项
             int itemHeight = 30;
@@ -181,8 +178,17 @@ namespace SpineEditor.UI
                     bool isItemHovered = itemRect.Contains(mouseState.Position);
 
                     // 绘制项目背景
-                    Color itemBackgroundColor = isItemHovered ? new Color(70, 70, 70) : 
-                                               (itemIndex == _selectedIndex ? new Color(60, 60, 60) : new Color(50, 50, 50));
+                    Color itemBackgroundColor;
+                    if (itemIndex == _selectedIndex)
+                    {
+                        // 选中项使用蓝色调
+                        itemBackgroundColor = isItemHovered ? new Color(80, 130, 180) : new Color(60, 105, 150);
+                    }
+                    else
+                    {
+                        // 非选中项
+                        itemBackgroundColor = isItemHovered ? new Color(70, 70, 70) : new Color(55, 55, 55);
+                    }
                     spriteBatch.Draw(_texture, itemRect, itemBackgroundColor);
 
                     // 绘制项目文本
@@ -199,23 +205,42 @@ namespace SpineEditor.UI
                         }
                         text = text.Substring(0, maxChars) + "...";
                     }
-                    spriteBatch.DrawString(_font, text, new Vector2(itemRect.X + 5, itemRect.Y + (itemRect.Height - _font.MeasureString(text).Y) / 2), Color.White);
+
+                    // 选中项使用白色文本，非选中项使用浅灰色文本
+                    Color textColor = (itemIndex == _selectedIndex) ? Color.White : new Color(220, 220, 220);
+                    spriteBatch.DrawString(_font, text, new Vector2(itemRect.X + 8, itemRect.Y + (itemRect.Height - _font.MeasureString(text).Y) / 2), textColor);
+
+                    // 为选中项添加左侧指示条
+                    if (itemIndex == _selectedIndex)
+                    {
+                        spriteBatch.Draw(_texture, new Rectangle(itemRect.X, itemRect.Y, 3, itemRect.Height), new Color(120, 180, 210));
+                    }
+
+                    // 添加分隔线
+                    if (i < visibleItems - 1)
+                    {
+                        spriteBatch.Draw(_texture, new Rectangle(itemRect.X, itemRect.Y + itemRect.Height - 1, itemRect.Width, 1), new Color(70, 70, 70));
+                    }
                 }
             }
 
             // 如果有滚动条，绘制滚动条
             if (_items.Count > _maxVisibleItems)
             {
-                int scrollBarWidth = 10;
-                Rectangle scrollBarRect = new Rectangle(_bounds.X + _bounds.Width - scrollBarWidth, _bounds.Y, scrollBarWidth, _bounds.Height);
-                spriteBatch.Draw(_texture, scrollBarRect, new Color(30, 30, 30));
+                int scrollBarWidth = 8;
+                Rectangle scrollBarRect = new Rectangle(_bounds.X + _bounds.Width - scrollBarWidth - 2, _bounds.Y + 2, scrollBarWidth, _bounds.Height - 4);
+                spriteBatch.Draw(_texture, scrollBarRect, new Color(40, 40, 40));
 
                 // 计算滑块的大小和位置
                 float thumbRatio = (float)_maxVisibleItems / _items.Count;
-                int thumbHeight = (int)(_bounds.Height * thumbRatio);
-                int thumbY = _bounds.Y + (int)((_bounds.Height - thumbHeight) * ((float)_scrollOffset / (_items.Count - _maxVisibleItems)));
+                int thumbHeight = Math.Max(20, (int)(_bounds.Height * thumbRatio));
+                int maxOffset = Math.Max(1, _items.Count - _maxVisibleItems);
+                int thumbY = _bounds.Y + 2 + (int)((_bounds.Height - 4 - thumbHeight) * ((float)_scrollOffset / maxOffset));
                 Rectangle thumbRect = new Rectangle(scrollBarRect.X, thumbY, scrollBarRect.Width, thumbHeight);
-                spriteBatch.Draw(_texture, thumbRect, new Color(100, 100, 100));
+
+                // 滑块颜色根据鼠标悬停状态变化
+                Color thumbColor = _isHovered ? new Color(120, 120, 120) : new Color(80, 80, 80);
+                spriteBatch.Draw(_texture, thumbRect, thumbColor);
             }
         }
 

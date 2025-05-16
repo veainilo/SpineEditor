@@ -26,10 +26,7 @@ namespace SpineEditor.Events
         private UIManager _uiManager;
 
         // UI 元素
-        private Button _playPauseButton;
-        private Button _resetButton;
-        private TextBox _speedTextBox;
-        private AnimationListBox _animationList;
+        private LeftPanel _leftPanel;
 
         private string _currentFilePath = "events.json";
 
@@ -133,57 +130,45 @@ namespace SpineEditor.Events
             _propertyPanel = new EventPropertyPanel(_eventEditor, GraphicsDevice, _font);
             _propertyPanel.SetBounds(new Rectangle(GraphicsDevice.Viewport.Width - 300, 0, 300, GraphicsDevice.Viewport.Height - 200));
 
-            // 创建UI按钮 - 放在左侧
-            int leftPanelX = 20; // 左侧面板起始X坐标
-            int buttonY = 50; // 按钮起始Y坐标
-            int buttonSpacing = 40; // 按钮间距
+            // 创建左侧面板
+            int leftPanelWidth = 250;
+            _leftPanel = new LeftPanel(GraphicsDevice, _font,
+                new Rectangle(0, 0, leftPanelWidth, GraphicsDevice.Viewport.Height - 200));
 
-            // 创建播放/暂停按钮
-            _playPauseButton = new Button(GraphicsDevice, "Play", new Rectangle(leftPanelX, buttonY, 80, 30));
-            buttonY += buttonSpacing;
-
-            // 创建重置按钮
-            _resetButton = new Button(GraphicsDevice, "Reset", new Rectangle(leftPanelX, buttonY, 80, 30));
-            buttonY += buttonSpacing;
-
-            // 创建速度文本框
-            _speedTextBox = new TextBox(GraphicsDevice, "Speed", "1.0", new Rectangle(leftPanelX, buttonY, 80, 30));
-            buttonY += buttonSpacing;
-
-            // 创建动画列表
-            List<string> animationNames = new List<string>(_eventEditor.AnimationNames);
-            _animationList = new AnimationListBox(GraphicsDevice, _font, animationNames, new Rectangle(leftPanelX, buttonY, 200, 200));
+            // 设置初始动画列表
+            _leftPanel.SetAnimations(_eventEditor.AnimationNames);
 
             // 设置初始选中的动画
-            if (animationNames.Count > 0)
+            if (_eventEditor.AnimationNames.Length > 0)
             {
-                _animationList.SelectedIndex = 0;
+                _leftPanel.AnimationList.SelectedIndex = 0;
             }
 
-            // 设置按钮事件
-            // 播放/暂停按钮点击事件
-            _playPauseButton.Click += (sender, e) => {
+            // 设置播放/暂停按钮事件
+            _leftPanel.PlayPauseClicked += (sender, e) => {
                 if (_eventEditor.IsPlaying)
                 {
                     // 如果正在播放，则暂停
                     _eventEditor.IsPlaying = false;
-                    _playPauseButton.Text = "Play";
+                    _leftPanel.SetPlayPauseButtonText(false);
                 }
                 else
                 {
                     // 如果已暂停，则播放
                     _eventEditor.IsPlaying = true;
-                    _playPauseButton.Text = "Pause";
+                    _leftPanel.SetPlayPauseButtonText(true);
                 }
             };
 
-            _resetButton.Click += (sender, e) => {
+            // 设置重置按钮事件
+            _leftPanel.ResetClicked += (sender, e) => {
                 _eventEditor.CurrentTime = 0;
                 _timelineControl.CurrentTime = 0;
             };
 
-            _speedTextBox.TextChanged += (sender, e) => {
-                if (float.TryParse(_speedTextBox.Text, out float speed))
+            // 设置速度变更事件
+            _leftPanel.SpeedChanged += (sender, speedText) => {
+                if (float.TryParse(speedText, out float speed))
                 {
                     _eventEditor.PlaybackSpeed = MathHelper.Clamp(speed, 0.1f, 10.0f);
                 }
@@ -204,24 +189,21 @@ namespace SpineEditor.Events
                 Console.WriteLine($"事件触发: {evt.Name}, 时间: {evt.Time}, 整数值: {evt.IntValue}, 浮点值: {evt.FloatValue}, 字符串值: {evt.StringValue}");
             };
 
-            // 设置动画列表事件
-            _animationList.SelectedIndexChanged += (sender, e) => {
-                if (_animationList.SelectedItem != null)
+            // 设置动画选择事件
+            _leftPanel.AnimationSelected += (sender, animationName) => {
+                // 切换动画
+                bool success = _eventEditor.SwitchAnimation(animationName, true);
+
+                if (success)
                 {
-                    // 切换动画
-                    bool success = _eventEditor.SwitchAnimation(_animationList.SelectedItem, true);
+                    // 更新时间轴的持续时间
+                    _timelineControl.SetDuration(_eventEditor.AnimationDuration);
 
-                    if (success)
+                    // 更新时间轴上的事件
+                    _timelineControl.GetEvents().Clear();
+                    foreach (var evt in _eventEditor.Events)
                     {
-                        // 更新时间轴的持续时间
-                        _timelineControl.SetDuration(_eventEditor.AnimationDuration);
-
-                        // 更新时间轴上的事件
-                        _timelineControl.GetEvents().Clear();
-                        foreach (var evt in _eventEditor.Events)
-                        {
-                            _timelineControl.AddEvent(evt);
-                        }
+                        _timelineControl.AddEvent(evt);
                     }
                 }
             };
@@ -242,25 +224,22 @@ namespace SpineEditor.Events
             // 检查鼠标是否在时间轴控件范围内
             bool isMouseOverTimeline = _timelineControl.Bounds.Contains(mouseState.Position);
 
-            // 检查鼠标是否在动画列表区域内
-            bool isMouseOverAnimationList = false;
-            if (_animationList != null)
+            // 检查鼠标是否在左侧面板区域内
+            bool isMouseOverLeftPanel = false;
+            if (_leftPanel != null)
             {
-                // 检查动画列表区域
-                isMouseOverAnimationList = _animationList.Bounds.Contains(mouseState.Position);
+                // 检查左侧面板区域
+                isMouseOverLeftPanel = _leftPanel.Bounds.Contains(mouseState.Position);
             }
 
             // 更新 UI 管理器
             _uiManager.Update(gameTime);
 
-            // 更新 UI 按钮
-            _playPauseButton.Update();
-            _resetButton.Update();
-            _speedTextBox.Update(gameTime);
-            _animationList.Update();
+            // 更新左侧面板
+            _leftPanel.Update(gameTime);
 
-            // 更新视口控件，只有当鼠标不在时间轴控件范围内且不在动画列表区域内时才处理滚轮事件
-            _viewport.Update(gameTime, !isMouseOverTimeline && !isMouseOverAnimationList);
+            // 更新视口控件，只有当鼠标不在时间轴控件范围内且不在左侧面板区域内时才处理滚轮事件
+            _viewport.Update(gameTime, !isMouseOverTimeline && !isMouseOverLeftPanel);
 
             // 更新属性编辑面板
             _propertyPanel.Update(gameTime);
@@ -299,12 +278,9 @@ namespace SpineEditor.Events
             _uiManager.Draw(_spriteBatch);
             _spriteBatch.End();
 
-            // 绘制 UI 按钮和其他控件
+            // 绘制左侧面板
             _spriteBatch.Begin();
-            _playPauseButton.Draw(_spriteBatch, _font);
-            _resetButton.Draw(_spriteBatch, _font);
-            _speedTextBox.Draw(_spriteBatch, _font);
-            _animationList.Draw(_spriteBatch);
+            _leftPanel.Draw(_spriteBatch);
 
             // 绘制视口信息
             _viewport.DrawInfo(_spriteBatch);
@@ -314,13 +290,14 @@ namespace SpineEditor.Events
 
             _spriteBatch.End();
 
-            // 绘制当前信息
-            _spriteBatch.Begin();
-            string infoText = $"Current Time: {_eventEditor.CurrentTime:F3} / {_eventEditor.AnimationDuration:F3}\n" +
-                             $"Current Animation: {_eventEditor.CurrentAnimation}\n" +
-                             $"Event Count: {_eventEditor.Events.Count}\n" +
-                             $"Scale: {_eventEditor.Scale:F2}";
-            _spriteBatch.DrawString(_font, infoText, new Vector2(10, 50), Color.White);
+            // 更新左侧面板信息
+            _leftPanel.UpdateInfo(
+                _eventEditor.CurrentTime,
+                _eventEditor.AnimationDuration,
+                _eventEditor.CurrentAnimation,
+                _eventEditor.Events.Count,
+                _eventEditor.Scale
+            );
             _spriteBatch.End();
 
             base.Draw(gameTime);
@@ -410,13 +387,12 @@ namespace SpineEditor.Events
                     Console.WriteLine($"成功加载Spine动画: {atlasPath}, {skelPath}");
 
                     // 更新动画列表
-                    List<string> animationNames = new List<string>(_eventEditor.AnimationNames);
-                    _animationList.Items = animationNames;
+                    _leftPanel.SetAnimations(_eventEditor.AnimationNames);
 
                     // 设置初始选中的动画
-                    if (animationNames.Count > 0)
+                    if (_eventEditor.AnimationNames.Length > 0)
                     {
-                        _animationList.SelectedIndex = 0;
+                        _leftPanel.AnimationList.SelectedIndex = 0;
                     }
 
                     // 获取动画时长
