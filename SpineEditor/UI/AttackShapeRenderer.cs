@@ -24,21 +24,21 @@ namespace SpineEditor.UI
         public AttackShapeRenderer(GraphicsDevice graphicsDevice)
         {
             _graphicsDevice = graphicsDevice;
-            
+
             // 创建1x1像素纹理
             _pixel = new Texture2D(graphicsDevice, 1, 1);
             _pixel.SetData(new[] { Color.White });
-            
+
             // 创建基本效果
             _effect = new BasicEffect(graphicsDevice);
             _effect.VertexColorEnabled = true;
             _effect.World = Matrix.Identity;
             _effect.View = Matrix.CreateLookAt(new Vector3(0, 0, 1), Vector3.Zero, Vector3.Up);
             _effect.Projection = Matrix.CreateOrthographicOffCenter(
-                0, graphicsDevice.Viewport.Width, 
-                graphicsDevice.Viewport.Height, 0, 
+                0, graphicsDevice.Viewport.Width,
+                graphicsDevice.Viewport.Height, 0,
                 0, 1);
-            
+
             // 初始化顶点数组
             _vertices = new VertexPositionColor[MAX_VERTICES];
             _vertexCount = 0;
@@ -48,15 +48,18 @@ namespace SpineEditor.UI
         /// 绘制攻击形状
         /// </summary>
         /// <param name="attackShape">攻击形状数据</param>
-        /// <param name="position">位置偏移</param>
+        /// <param name="position">Spine动画的位置（原点位置）</param>
         /// <param name="scale">缩放</param>
         /// <param name="color">颜色</param>
+        /// <remarks>
+        /// 攻击形状的坐标是相对于Spine动画原点的，需要将其转换为屏幕坐标
+        /// </remarks>
         public void DrawAttackShape(AttackShape attackShape, Vector2 position, float scale, Color color)
         {
             if (attackShape == null)
                 return;
 
-            // 计算实际位置（考虑偏移和缩放）
+            // 计算实际位置（考虑Spine原点位置、形状相对坐标和缩放）
             Vector2 actualPosition = new Vector2(
                 position.X + attackShape.X * scale,
                 position.Y + attackShape.Y * scale
@@ -130,7 +133,7 @@ namespace SpineEditor.UI
         private void DrawCircle(Vector2 center, float radius, int segments, Color color)
         {
             _vertexCount = 0;
-            
+
             // 生成圆周上的点
             Vector2 prev = new Vector2(
                 center.X + radius,

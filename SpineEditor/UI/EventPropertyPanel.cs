@@ -107,8 +107,9 @@ namespace SpineEditor.UI
             };
             _shapeTypeDropdown = new DropdownList(graphicsDevice, _font, "Shape Type", shapeTypes, new Rectangle(0, 0, 200, 30));
 
-            _shapeXTextBox = new TextBox(graphicsDevice, "X", "0", new Rectangle(0, 0, 200, 30));
-            _shapeYTextBox = new TextBox(graphicsDevice, "Y", "0", new Rectangle(0, 0, 200, 30));
+            // 注意：X和Y坐标是相对于Spine动画原点的
+            _shapeXTextBox = new TextBox(graphicsDevice, "X (相对原点)", "0", new Rectangle(0, 0, 200, 30));
+            _shapeYTextBox = new TextBox(graphicsDevice, "Y (相对原点)", "0", new Rectangle(0, 0, 200, 30));
             _shapeWidthTextBox = new TextBox(graphicsDevice, "Width/Radius", "0", new Rectangle(0, 0, 200, 30));
             _shapeHeightTextBox = new TextBox(graphicsDevice, "Height", "0", new Rectangle(0, 0, 200, 30));
             _shapeRotationTextBox = new TextBox(graphicsDevice, "Rotation", "0", new Rectangle(0, 0, 200, 30));

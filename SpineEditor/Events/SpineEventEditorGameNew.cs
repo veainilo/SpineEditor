@@ -475,6 +475,7 @@ namespace SpineEditor.Events
                 if (shape != null)
                 {
                     // 获取当前动画的位置和缩放
+                    // 注意：Position是Spine动画的原点位置，攻击形状坐标是相对于此原点的
                     Vector2 position = _eventEditor.Position;
                     float scale = _eventEditor.Scale;
 
