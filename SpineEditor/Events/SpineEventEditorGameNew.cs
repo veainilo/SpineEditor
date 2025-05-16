@@ -255,6 +255,29 @@ namespace SpineEditor.Events
             // 检查鼠标是否在时间轴控件范围内
             bool isMouseOverTimeline = _timelineControl.Bounds.Contains(mouseState.Position);
 
+            // 检查鼠标是否在下拉列表区域内
+            bool isMouseOverDropdown = false;
+            if (_animationDropdown != null)
+            {
+                // 检查主下拉列表区域
+                isMouseOverDropdown = _animationDropdown.Bounds.Contains(mouseState.Position);
+
+                // 如果下拉列表展开，还需要检查展开的项目区域
+                if (_animationDropdown.IsExpanded)
+                {
+                    // 计算下拉列表展开区域
+                    int itemHeight = 30;
+                    int visibleItems = Math.Min(_animationDropdown.Items.Count, 5); // 假设最大可见项目数为5
+                    Rectangle dropdownRect = new Rectangle(
+                        _animationDropdown.Bounds.X,
+                        _animationDropdown.Bounds.Y + _animationDropdown.Bounds.Height,
+                        _animationDropdown.Bounds.Width,
+                        itemHeight * visibleItems);
+
+                    isMouseOverDropdown |= dropdownRect.Contains(mouseState.Position);
+                }
+            }
+
             // 更新 UI 管理器
             _uiManager.Update(gameTime);
 
@@ -267,8 +290,8 @@ namespace SpineEditor.Events
             _speedTextBox.Update(gameTime);
             _animationDropdown.Update();
 
-            // 更新视口控件，只有当鼠标不在时间轴控件范围内时才处理滚轮事件
-            _viewport.Update(gameTime, !isMouseOverTimeline);
+            // 更新视口控件，只有当鼠标不在时间轴控件范围内且不在下拉列表区域内时才处理滚轮事件
+            _viewport.Update(gameTime, !isMouseOverTimeline && !isMouseOverDropdown);
 
             // 更新属性编辑面板
             _propertyPanel.Update(gameTime);

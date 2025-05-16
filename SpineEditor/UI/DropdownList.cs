@@ -34,6 +34,14 @@ namespace SpineEditor.UI
         }
 
         /// <summary>
+        /// 获取下拉列表是否展开
+        /// </summary>
+        public bool IsExpanded
+        {
+            get => _isExpanded;
+        }
+
+        /// <summary>
         /// 获取或设置选中项的索引
         /// </summary>
         public int SelectedIndex
