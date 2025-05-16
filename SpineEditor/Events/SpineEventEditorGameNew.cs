@@ -26,13 +26,10 @@ namespace SpineEditor.Events
         private UIManager _uiManager;
 
         // UI 元素
-        private Button _loadButton;
-        private Button _saveButton;
-        private Button _playButton;
-        private Button _pauseButton;
+        private Button _playPauseButton;
         private Button _resetButton;
         private TextBox _speedTextBox;
-        private DropdownList _animationDropdown;
+        private AnimationListBox _animationList;
 
         private string _currentFilePath = "events.json";
 
@@ -136,90 +133,48 @@ namespace SpineEditor.Events
             _propertyPanel = new EventPropertyPanel(_eventEditor, GraphicsDevice, _font);
             _propertyPanel.SetBounds(new Rectangle(GraphicsDevice.Viewport.Width - 300, 0, 300, GraphicsDevice.Viewport.Height - 200));
 
-            // 创建UI按钮
-            _loadButton = new Button(GraphicsDevice, "Load", new Rectangle(10, 10, 80, 30));
-            _saveButton = new Button(GraphicsDevice, "Save", new Rectangle(100, 10, 80, 30));
-            _playButton = new Button(GraphicsDevice, "Play", new Rectangle(190, 10, 80, 30));
-            _pauseButton = new Button(GraphicsDevice, "Pause", new Rectangle(280, 10, 80, 30));
-            _resetButton = new Button(GraphicsDevice, "Reset", new Rectangle(370, 10, 80, 30));
+            // 创建UI按钮 - 放在左侧
+            int leftPanelX = 20; // 左侧面板起始X坐标
+            int buttonY = 50; // 按钮起始Y坐标
+            int buttonSpacing = 40; // 按钮间距
+
+            // 创建播放/暂停按钮
+            _playPauseButton = new Button(GraphicsDevice, "Play", new Rectangle(leftPanelX, buttonY, 80, 30));
+            buttonY += buttonSpacing;
+
+            // 创建重置按钮
+            _resetButton = new Button(GraphicsDevice, "Reset", new Rectangle(leftPanelX, buttonY, 80, 30));
+            buttonY += buttonSpacing;
 
             // 创建速度文本框
-            _speedTextBox = new TextBox(GraphicsDevice, "Speed", "1.0", new Rectangle(460, 10, 80, 30));
+            _speedTextBox = new TextBox(GraphicsDevice, "Speed", "1.0", new Rectangle(leftPanelX, buttonY, 80, 30));
+            buttonY += buttonSpacing;
 
-            // 创建动画下拉列表
+            // 创建动画列表
             List<string> animationNames = new List<string>(_eventEditor.AnimationNames);
-            _animationDropdown = new DropdownList(GraphicsDevice, _font, "Animation", animationNames, new Rectangle(560, 10, 200, 30));
+            _animationList = new AnimationListBox(GraphicsDevice, _font, animationNames, new Rectangle(leftPanelX, buttonY, 200, 200));
 
             // 设置初始选中的动画
             if (animationNames.Count > 0)
             {
-                _animationDropdown.SelectedIndex = 0;
+                _animationList.SelectedIndex = 0;
             }
 
             // 设置按钮事件
-            _loadButton.Click += (sender, e) => {
-                // 如果当前文件路径是默认的，则尝试查找与skel文件同目录下的事件文件
-                if (_currentFilePath == "events.json" && !string.IsNullOrEmpty(_eventEditor.SkeletonDataFilePath))
+            // 播放/暂停按钮点击事件
+            _playPauseButton.Click += (sender, e) => {
+                if (_eventEditor.IsPlaying)
                 {
-                    string directory = Path.GetDirectoryName(_eventEditor.SkeletonDataFilePath);
-                    string fileNameWithoutExt = Path.GetFileNameWithoutExtension(_eventEditor.SkeletonDataFilePath);
-                    string possibleEventFile = Path.Combine(directory, fileNameWithoutExt + "_events.json");
-
-                    if (File.Exists(possibleEventFile))
-                    {
-                        _currentFilePath = possibleEventFile;
-                        Console.WriteLine($"找到事件文件: {_currentFilePath}");
-                    }
-                    else
-                    {
-                        // 尝试查找目录中的任何json文件
-                        string[] jsonFiles = Directory.GetFiles(directory, "*_events.json");
-                        if (jsonFiles.Length > 0)
-                        {
-                            _currentFilePath = jsonFiles[0];
-                            Console.WriteLine($"在目录中找到事件文件: {_currentFilePath}");
-                        }
-                    }
-                }
-
-                // 加载事件数据
-                if (_eventEditor.LoadEventsFromJson(_currentFilePath))
-                {
-                    Console.WriteLine($"从 {_currentFilePath} 加载事件数据成功");
-
-                    // 更新时间轴上的事件
-                    _timelineControl.GetEvents().Clear();
-                    foreach (var evt in _eventEditor.Events)
-                    {
-                        _timelineControl.AddEvent(evt);
-                    }
+                    // 如果正在播放，则暂停
+                    _eventEditor.IsPlaying = false;
+                    _playPauseButton.Text = "Play";
                 }
                 else
                 {
-                    Console.WriteLine($"从 {_currentFilePath} 加载事件数据失败");
+                    // 如果已暂停，则播放
+                    _eventEditor.IsPlaying = true;
+                    _playPauseButton.Text = "Pause";
                 }
-            };
-
-            _saveButton.Click += (sender, e) => {
-                // 保存事件数据
-                // 如果当前文件路径是默认的，则修改为skel文件同目录下的同名json文件
-                if (_currentFilePath == "events.json" && !string.IsNullOrEmpty(_eventEditor.SkeletonDataFilePath))
-                {
-                    string directory = Path.GetDirectoryName(_eventEditor.SkeletonDataFilePath);
-                    string fileNameWithoutExt = Path.GetFileNameWithoutExtension(_eventEditor.SkeletonDataFilePath);
-                    _currentFilePath = Path.Combine(directory, fileNameWithoutExt + "_events.json");
-                }
-
-                _eventEditor.SaveEventsToJson(_currentFilePath, _eventEditor.CurrentAnimation);
-                Console.WriteLine($"事件数据已保存到 {_currentFilePath}");
-            };
-
-            _playButton.Click += (sender, e) => {
-                _eventEditor.IsPlaying = true;
-            };
-
-            _pauseButton.Click += (sender, e) => {
-                _eventEditor.IsPlaying = false;
             };
 
             _resetButton.Click += (sender, e) => {
@@ -249,12 +204,12 @@ namespace SpineEditor.Events
                 Console.WriteLine($"事件触发: {evt.Name}, 时间: {evt.Time}, 整数值: {evt.IntValue}, 浮点值: {evt.FloatValue}, 字符串值: {evt.StringValue}");
             };
 
-            // 设置动画下拉列表事件
-            _animationDropdown.SelectedIndexChanged += (sender, e) => {
-                if (_animationDropdown.SelectedItem != null)
+            // 设置动画列表事件
+            _animationList.SelectedIndexChanged += (sender, e) => {
+                if (_animationList.SelectedItem != null)
                 {
                     // 切换动画
-                    bool success = _eventEditor.SwitchAnimation(_animationDropdown.SelectedItem, true);
+                    bool success = _eventEditor.SwitchAnimation(_animationList.SelectedItem, true);
 
                     if (success)
                     {
@@ -287,43 +242,25 @@ namespace SpineEditor.Events
             // 检查鼠标是否在时间轴控件范围内
             bool isMouseOverTimeline = _timelineControl.Bounds.Contains(mouseState.Position);
 
-            // 检查鼠标是否在下拉列表区域内
-            bool isMouseOverDropdown = false;
-            if (_animationDropdown != null)
+            // 检查鼠标是否在动画列表区域内
+            bool isMouseOverAnimationList = false;
+            if (_animationList != null)
             {
-                // 检查主下拉列表区域
-                isMouseOverDropdown = _animationDropdown.Bounds.Contains(mouseState.Position);
-
-                // 如果下拉列表展开，还需要检查展开的项目区域
-                if (_animationDropdown.IsExpanded)
-                {
-                    // 计算下拉列表展开区域
-                    int itemHeight = 30;
-                    int visibleItems = Math.Min(_animationDropdown.Items.Count, 5); // 假设最大可见项目数为5
-                    Rectangle dropdownRect = new Rectangle(
-                        _animationDropdown.Bounds.X,
-                        _animationDropdown.Bounds.Y + _animationDropdown.Bounds.Height,
-                        _animationDropdown.Bounds.Width,
-                        itemHeight * visibleItems);
-
-                    isMouseOverDropdown |= dropdownRect.Contains(mouseState.Position);
-                }
+                // 检查动画列表区域
+                isMouseOverAnimationList = _animationList.Bounds.Contains(mouseState.Position);
             }
 
             // 更新 UI 管理器
             _uiManager.Update(gameTime);
 
             // 更新 UI 按钮
-            _loadButton.Update();
-            _saveButton.Update();
-            _playButton.Update();
-            _pauseButton.Update();
+            _playPauseButton.Update();
             _resetButton.Update();
             _speedTextBox.Update(gameTime);
-            _animationDropdown.Update();
+            _animationList.Update();
 
-            // 更新视口控件，只有当鼠标不在时间轴控件范围内且不在下拉列表区域内时才处理滚轮事件
-            _viewport.Update(gameTime, !isMouseOverTimeline && !isMouseOverDropdown);
+            // 更新视口控件，只有当鼠标不在时间轴控件范围内且不在动画列表区域内时才处理滚轮事件
+            _viewport.Update(gameTime, !isMouseOverTimeline && !isMouseOverAnimationList);
 
             // 更新属性编辑面板
             _propertyPanel.Update(gameTime);
@@ -364,13 +301,10 @@ namespace SpineEditor.Events
 
             // 绘制 UI 按钮和其他控件
             _spriteBatch.Begin();
-            _loadButton.Draw(_spriteBatch, _font);
-            _saveButton.Draw(_spriteBatch, _font);
-            _playButton.Draw(_spriteBatch, _font);
-            _pauseButton.Draw(_spriteBatch, _font);
+            _playPauseButton.Draw(_spriteBatch, _font);
             _resetButton.Draw(_spriteBatch, _font);
             _speedTextBox.Draw(_spriteBatch, _font);
-            _animationDropdown.Draw(_spriteBatch);
+            _animationList.Draw(_spriteBatch);
 
             // 绘制视口信息
             _viewport.DrawInfo(_spriteBatch);
@@ -475,14 +409,14 @@ namespace SpineEditor.Events
                 {
                     Console.WriteLine($"成功加载Spine动画: {atlasPath}, {skelPath}");
 
-                    // 更新动画下拉列表
+                    // 更新动画列表
                     List<string> animationNames = new List<string>(_eventEditor.AnimationNames);
-                    _animationDropdown.Items = animationNames;
+                    _animationList.Items = animationNames;
 
                     // 设置初始选中的动画
                     if (animationNames.Count > 0)
                     {
-                        _animationDropdown.SelectedIndex = 0;
+                        _animationList.SelectedIndex = 0;
                     }
 
                     // 获取动画时长

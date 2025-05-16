@@ -292,22 +292,42 @@ namespace SpineEditor.Events
         /// <param name="deltaTime">时间增量（秒）</param>
         public override void Update(float deltaTime)
         {
-            if (!_isPlaying)
-                return;
-
             float previousTime = _currentTime;
-            _currentTime += deltaTime * _playbackSpeed;
 
-            // 循环播放
-            if (AnimationState != null && AnimationState.GetCurrent(0) != null)
+            if (_isPlaying)
             {
-                float duration = AnimationState.GetCurrent(0).Animation.Duration;
-                if (_currentTime > duration)
-                    _currentTime = 0;
+                _currentTime += deltaTime * _playbackSpeed;
+
+                // 循环播放
+                if (AnimationState != null && AnimationState.GetCurrent(0) != null)
+                {
+                    float duration = AnimationState.GetCurrent(0).Animation.Duration;
+                    if (_currentTime > duration)
+                        _currentTime = 0;
+                }
             }
 
-            // 调用基类的 Update 方法
-            base.Update(deltaTime * _playbackSpeed);
+            // 即使没有播放，也要确保骨骼位置正确
+            if (AnimationState != null && AnimationState.GetCurrent(0) != null)
+            {
+                // 设置动画时间
+                AnimationState.GetCurrent(0).TrackTime = _currentTime;
+
+                // 更新骨骼
+                AnimationState.Apply(Skeleton);
+                Skeleton.UpdateWorldTransform();
+            }
+
+            // 调用基类的 Update 方法，但只有在播放时才传递时间
+            if (_isPlaying)
+            {
+                base.Update(deltaTime * _playbackSpeed);
+            }
+            else
+            {
+                // 即使不播放，也要确保骨骼位置正确
+                base.Update(0);
+            }
 
             // 检查是否有事件需要触发
             foreach (var evt in _events)
