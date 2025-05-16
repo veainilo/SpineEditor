@@ -298,7 +298,6 @@ namespace SpineEditor.Events
                 _eventEditor.Events.Count,
                 _eventEditor.Scale
             );
-            _spriteBatch.End();
 
             base.Draw(gameTime);
         }
