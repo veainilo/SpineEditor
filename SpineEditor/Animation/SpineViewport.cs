@@ -64,13 +64,14 @@ namespace SpineEditor.Animation
         /// 更新视口
         /// </summary>
         /// <param name="gameTime">游戏时间</param>
-        public void Update(GameTime gameTime)
+        /// <param name="handleScrollWheel">是否处理滚轮事件</param>
+        public void Update(GameTime gameTime, bool handleScrollWheel = true)
         {
             MouseState mouseState = Mouse.GetState();
             KeyboardState keyboardState = Keyboard.GetState();
 
-            // 处理鼠标滚轮缩放
-            if (mouseState.ScrollWheelValue != _prevMouseState.ScrollWheelValue)
+            // 处理鼠标滚轮缩放，只有当handleScrollWheel为true时才处理
+            if (handleScrollWheel && mouseState.ScrollWheelValue != _prevMouseState.ScrollWheelValue)
             {
                 float zoomDelta = (mouseState.ScrollWheelValue - _prevMouseState.ScrollWheelValue) / 120.0f * _scaleStep;
                 float newScale = MathHelper.Clamp(_player.Scale + zoomDelta, _minScale, _maxScale);

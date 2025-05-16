@@ -246,6 +246,12 @@ namespace SpineEditor.Events
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
+            // 获取鼠标状态
+            MouseState mouseState = Mouse.GetState();
+
+            // 检查鼠标是否在时间轴控件范围内
+            bool isMouseOverTimeline = _timelineControl.Bounds.Contains(mouseState.Position);
+
             // 更新 UI 管理器
             _uiManager.Update(gameTime);
 
@@ -258,8 +264,8 @@ namespace SpineEditor.Events
             _speedTextBox.Update(gameTime);
             _animationDropdown.Update();
 
-            // 更新视口控件
-            _viewport.Update(gameTime);
+            // 更新视口控件，只有当鼠标不在时间轴控件范围内时才处理滚轮事件
+            _viewport.Update(gameTime, !isMouseOverTimeline);
 
             // 更新属性编辑面板
             _propertyPanel.Update(gameTime);
