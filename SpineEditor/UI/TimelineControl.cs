@@ -184,7 +184,6 @@ namespace SpineEditor.UI
                     // 检查是否点击了事件标记
                     else if (_prevMouseState.LeftButton == ButtonState.Released)
                     {
-                        bool eventClicked = false;
                         foreach (var evt in _eventEditor.Events)
                         {
                             float eventX = XFromTime(evt.Time);
@@ -195,7 +194,6 @@ namespace SpineEditor.UI
                                 _isDraggingEvent = true;
                                 _dragOffset = mouseState.X - eventX;
                                 OnEventSelected?.Invoke(this, _selectedEvent);
-                                eventClicked = true;
                                 break;
                             }
                         }
