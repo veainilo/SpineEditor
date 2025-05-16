@@ -17,6 +17,9 @@ public class Game1 : Game
     private AnimationState _animationState;
     private float _currentTime;
 
+    // 圆形纹理
+    private Texture2D _circleTexture;
+
     public Game1()
     {
         _graphics = new GraphicsDeviceManager(this);
@@ -31,7 +34,17 @@ public class Game1 : Game
         {
             System.Console.WriteLine("初始化 SkeletonRenderer...");
             _skeletonRenderer = new SkeletonRenderer(GraphicsDevice);
-            _skeletonRenderer.PremultipliedAlpha = true;
+
+            // 设置为 false，与示例代码保持一致
+            _skeletonRenderer.PremultipliedAlpha = false;
+
+            // 设置基本效果的投影矩阵
+            BasicEffect effect = (BasicEffect)_skeletonRenderer.Effect;
+            effect.World = Matrix.Identity;
+            effect.View = Matrix.CreateLookAt(new Vector3(0.0f, 0.0f, 1.0f), Vector3.Zero, Vector3.Up);
+            effect.TextureEnabled = true;
+            effect.VertexColorEnabled = true;
+
             System.Console.WriteLine("SkeletonRenderer 初始化成功");
         }
         catch (System.Exception ex)
@@ -156,9 +169,16 @@ public class Game1 : Game
             // 创建 Skeleton 和设置位置
             System.Console.WriteLine("开始创建 Skeleton...");
             _skeleton = new Skeleton(skeletonData);
+
+            // 设置位置在屏幕中央，但稍微向上一点，以便看到完整的角色
             _skeleton.X = GraphicsDevice.Viewport.Width / 2;
-            _skeleton.Y = GraphicsDevice.Viewport.Height / 2;
-            System.Console.WriteLine($"Skeleton 创建成功，位置: ({_skeleton.X}, {_skeleton.Y})");
+            _skeleton.Y = GraphicsDevice.Viewport.Height * 0.75f; // 将 Y 位置设置为屏幕高度的 75%
+
+            // 设置缩放
+            _skeleton.ScaleX = 0.5f;
+            _skeleton.ScaleY = 0.5f;
+
+            System.Console.WriteLine($"Skeleton 创建成功，位置: ({_skeleton.X}, {_skeleton.Y})，缩放: ({_skeleton.ScaleX}, {_skeleton.ScaleY})");
 
             // 创建动画状态
             System.Console.WriteLine("开始创建 AnimationStateData...");
@@ -203,77 +223,133 @@ public class Game1 : Game
             Exit();
 
         // 更新 Spine 动画
-        float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        // 将毫秒转换为秒
+        float deltaTime = (float)gameTime.ElapsedGameTime.TotalMilliseconds / 1000.0f;
         _currentTime += deltaTime;
 
-        // 更新 Spine 动画
+        // 更新 Spine 动画，与示例代码保持一致
         if (_animationState != null && _skeleton != null)
         {
+            // 更新动画状态并应用到骨骼
             _animationState.Update(deltaTime);
             _animationState.Apply(_skeleton);
+
+            // 更新骨骼的世界变换
             _skeleton.UpdateWorldTransform();
         }
 
         base.Update(gameTime);
     }
 
+    // 创建一个圆形纹理
+    private Texture2D CreateCircleTexture(int radius)
+    {
+        int diameter = radius * 2;
+        Texture2D texture = new Texture2D(GraphicsDevice, diameter, diameter);
+        Color[] data = new Color[diameter * diameter];
+
+        // 计算圆形
+        int centerX = radius;
+        int centerY = radius;
+
+        for (int x = 0; x < diameter; x++)
+        {
+            for (int y = 0; y < diameter; y++)
+            {
+                int index = x + y * diameter;
+                // 计算点到圆心的距离
+                float distance = Vector2.Distance(new Vector2(x, y), new Vector2(centerX, centerY));
+
+                // 如果距离小于半径，则为圆内部
+                if (distance <= radius)
+                {
+                    // 圆内部为红色
+                    data[index] = Color.Red;
+                }
+                else
+                {
+                    // 圆外部为透明
+                    data[index] = Color.Transparent;
+                }
+            }
+        }
+
+        texture.SetData(data);
+        return texture;
+    }
+
+
+
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(Color.CornflowerBlue);
+
+        // 创建圆形纹理（如果尚未创建）
+        if (_circleTexture == null)
+        {
+            _circleTexture = CreateCircleTexture(50); // 50像素半径
+        }
+
+        // 绘制屏幕中心的圆形
+        _spriteBatch.Begin();
+
+        // 绘制圆形在屏幕中心
+        int screenCenterX = GraphicsDevice.Viewport.Width / 2;
+        int screenCenterY = GraphicsDevice.Viewport.Height / 2;
+
+        // 绘制圆形
+        _spriteBatch.Draw(_circleTexture,
+            new Vector2(screenCenterX - _circleTexture.Width / 2, screenCenterY - _circleTexture.Height / 2),
+            Color.White);
+
+        // 绘制十字线
+        Texture2D pixel = new Texture2D(GraphicsDevice, 1, 1);
+        pixel.SetData(new[] { Color.White });
+
+        // 水平线
+        _spriteBatch.Draw(pixel, new Rectangle(screenCenterX - 100, screenCenterY, 200, 1), Color.White);
+        // 垂直线
+        _spriteBatch.Draw(pixel, new Rectangle(screenCenterX, screenCenterY - 100, 1, 200), Color.White);
+
+        // 显示坐标文本
+        _spriteBatch.End();
 
         // 绘制 Spine 动画
         if (_skeleton != null && _skeletonRenderer != null)
         {
             try
             {
-                // 使用适合 Spine 渲染的 SpriteBatch 参数
-                _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
-
-                try
+                // 打印 Skeleton 状态
+                if (_currentTime % 5 < 0.1f) // 每 5 秒打印一次
                 {
-                    // 打印 Skeleton 状态
-                    if (_currentTime % 5 < 0.1f) // 每 5 秒打印一次
-                    {
-                        System.Console.WriteLine($"Skeleton 状态: X={_skeleton.X}, Y={_skeleton.Y}");
-                        System.Console.WriteLine($"Viewport: Width={GraphicsDevice.Viewport.Width}, Height={GraphicsDevice.Viewport.Height}");
-                    }
-
-                    // 在 3.8 版本中，SkeletonRenderer 的使用方式可能不同
-                    try
-                    {
-                        // 尝试方法 1：使用 Begin/End 方法
-                        _skeletonRenderer.Begin();
-                        _skeletonRenderer.Draw(_skeleton);
-                        _skeletonRenderer.End();
-                    }
-                    catch (System.Exception ex1)
-                    {
-                        System.Console.WriteLine($"方法 1 失败: {ex1.Message}");
-
-                        try
-                        {
-                            // 尝试方法 2：直接调用 Draw 方法
-                            _skeletonRenderer.Draw(_skeleton);
-                        }
-                        catch (System.Exception ex2)
-                        {
-                            System.Console.WriteLine($"方法 2 失败: {ex2.Message}");
-                        }
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    System.Console.WriteLine($"渲染 Spine 动画时出错: {ex.Message}");
-                    if (ex.InnerException != null)
-                        System.Console.WriteLine($"内部错误: {ex.InnerException.Message}");
-                    System.Console.WriteLine($"堆栈跟踪: {ex.StackTrace}");
+                    System.Console.WriteLine($"Skeleton 状态: X={_skeleton.X}, Y={_skeleton.Y}");
+                    System.Console.WriteLine($"Viewport: Width={GraphicsDevice.Viewport.Width}, Height={GraphicsDevice.Viewport.Height}");
                 }
 
-                _spriteBatch.End();
+                // 设置投影矩阵，与示例代码保持一致
+                ((BasicEffect)_skeletonRenderer.Effect).Projection = Matrix.CreateOrthographicOffCenter(
+                    0, GraphicsDevice.Viewport.Width,
+                    GraphicsDevice.Viewport.Height, 0,
+                    1, 0);
+
+                // 使用与示例代码相同的渲染方式
+                _skeletonRenderer.Begin();
+                _skeletonRenderer.Draw(_skeleton);
+                _skeletonRenderer.End();
             }
             catch (System.Exception ex)
             {
-                System.Console.WriteLine($"SpriteBatch 操作时出错: {ex.Message}");
+                System.Console.WriteLine($"渲染 Spine 动画时出错: {ex.Message}");
+                if (ex.InnerException != null)
+                    System.Console.WriteLine($"内部错误: {ex.InnerException.Message}");
+                System.Console.WriteLine($"堆栈跟踪: {ex.StackTrace}");
+
+                // 如果 Spine 渲染失败，绘制一个红色矩形来标记位置
+                _spriteBatch.Begin();
+                Texture2D redPixel = new Texture2D(GraphicsDevice, 1, 1);
+                redPixel.SetData(new[] { Color.Red });
+                _spriteBatch.Draw(redPixel, new Rectangle((int)_skeleton.X - 50, (int)_skeleton.Y - 50, 100, 100), Color.Red);
+                _spriteBatch.End();
             }
         }
         else
