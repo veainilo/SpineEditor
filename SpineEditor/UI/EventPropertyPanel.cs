@@ -17,6 +17,11 @@ namespace SpineEditor.UI
         private Texture2D _background;
         private SpriteFont _font;
 
+        /// <summary>
+        /// 获取当前选中的事件
+        /// </summary>
+        public FrameEvent SelectedEvent => _selectedEvent;
+
         // 通用 UI 元素
         private Button _deleteButton;
         private TextBox _nameTextBox;

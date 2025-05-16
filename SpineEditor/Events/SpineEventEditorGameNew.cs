@@ -25,6 +25,9 @@ namespace SpineEditor.Events
         private SpriteFont _font;
         private UIManager _uiManager;
 
+        // 攻击形状渲染器
+        private AttackShapeRenderer _attackShapeRenderer;
+
         // UI 元素
         private LeftPanel _leftPanel;
 
@@ -74,6 +77,10 @@ namespace SpineEditor.Events
                 // 加载字体
                 _font = Content.Load<SpriteFont>("Font");
                 Console.WriteLine("加载字体成功");
+
+                // 创建攻击形状渲染器
+                _attackShapeRenderer = new AttackShapeRenderer(GraphicsDevice);
+                Console.WriteLine("创建攻击形状渲染器成功");
 
                 // 创建 Spine 事件编辑器
                 _eventEditor = new SpineEventEditor(GraphicsDevice);
@@ -276,6 +283,9 @@ namespace SpineEditor.Events
             // 绘制 Spine 动画
             _eventEditor.Draw();
 
+            // 绘制攻击形状（如果有选中的攻击事件）
+            DrawSelectedAttackShape();
+
             // 绘制 UI 管理器（包含新的时间轴控件）
             _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, null, null, null);
             _uiManager.Draw(_spriteBatch);
@@ -445,6 +455,33 @@ namespace SpineEditor.Events
                 else
                 {
                     Console.WriteLine($"加载Spine动画失败: {atlasPath}, {skelPath}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// 绘制选中的攻击形状
+        /// </summary>
+        private void DrawSelectedAttackShape()
+        {
+            // 获取当前选中的事件
+            FrameEvent selectedEvent = _propertyPanel.SelectedEvent;
+
+            // 检查是否有选中的事件，且是攻击类型
+            if (selectedEvent != null && selectedEvent.EventType == EventType.Attack && selectedEvent.Attack != null)
+            {
+                // 获取攻击形状
+                AttackShape shape = selectedEvent.Attack.Shape;
+                if (shape != null)
+                {
+                    // 获取当前动画的位置和缩放
+                    Vector2 position = _eventEditor.Position;
+                    float scale = _eventEditor.Scale;
+
+                    // 绘制攻击形状
+                    // 使用半透明红色，使形状更加明显
+                    Color shapeColor = new Color(255, 0, 0, 128);
+                    _attackShapeRenderer.DrawAttackShape(shape, position, scale, shapeColor);
                 }
             }
         }
