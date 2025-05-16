@@ -185,5 +185,28 @@ namespace SpineEditor.Animation
             int markerSize = 10;
             DrawingUtils.DrawMarker(spriteBatch, origin, markerSize, new Color(255, 0, 0, 150));
         }
+
+        /// <summary>
+        /// 绘制视口（包括网格和动画）
+        /// </summary>
+        /// <param name="spriteBatch">精灵批处理</param>
+        public void Draw(SpriteBatch spriteBatch)
+        {
+            // 绘制网格
+            if (_showGrid)
+            {
+                spriteBatch.Begin();
+                DrawGrid(spriteBatch);
+                spriteBatch.End();
+            }
+
+            // 绘制动画
+            _player.Draw();
+
+            // 绘制信息
+            spriteBatch.Begin();
+            DrawInfo(spriteBatch);
+            spriteBatch.End();
+        }
     }
 }
