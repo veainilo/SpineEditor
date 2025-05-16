@@ -37,7 +37,7 @@ namespace SpineEditor
                 {
                     // 重置动画状态
                     AnimationState.GetCurrent(0).TrackTime = _currentTime;
-                    
+
                     // 更新骨骼
                     AnimationState.Apply(Skeleton);
                     Skeleton.UpdateWorldTransform();
@@ -111,6 +111,52 @@ namespace SpineEditor
         }
 
         /// <summary>
+        /// 切换动画
+        /// </summary>
+        /// <param name="animationName">动画名称</param>
+        /// <param name="loop">是否循环播放</param>
+        /// <param name="saveEvents">是否保存当前动画的事件数据</param>
+        /// <param name="loadEvents">是否加载新动画的事件数据</param>
+        /// <returns>是否成功切换</returns>
+        public bool SwitchAnimation(string animationName, bool loop = true, bool saveEvents = true, bool loadEvents = true)
+        {
+            // 如果当前没有动画，直接返回
+            if (AnimationState == null || Skeleton == null)
+                return false;
+
+            // 如果动画名称相同，不需要切换
+            if (CurrentAnimation == animationName)
+                return true;
+
+            // 保存当前动画的事件数据
+            if (saveEvents && !string.IsNullOrEmpty(CurrentAnimation))
+            {
+                string eventFilePath = $"{CurrentAnimation}_events.json";
+                SaveEventsToJson(eventFilePath, CurrentAnimation);
+            }
+
+            // 播放新动画
+            bool success = PlayAnimation(animationName, loop);
+            if (!success)
+                return false;
+
+            // 重置时间
+            _currentTime = 0;
+
+            // 清除事件
+            _events.Clear();
+
+            // 加载新动画的事件数据
+            if (loadEvents)
+            {
+                string eventFilePath = $"{animationName}_events.json";
+                LoadEventsFromJson(eventFilePath);
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// 添加事件
         /// </summary>
         /// <param name="name">事件名称</param>
@@ -121,7 +167,7 @@ namespace SpineEditor
         public void AddEvent(string name, float time, int intValue = 0, float floatValue = 0, string stringValue = "")
         {
             _events.Add(new FrameEvent(name, time, intValue, floatValue, stringValue));
-            
+
             // 按时间排序
             _events = _events.OrderBy(e => e.Time).ToList();
         }
@@ -160,7 +206,7 @@ namespace SpineEditor
                 SpineFileName = Path.GetFileName(_skeletonDataFilePath),
                 Events = _events
             };
-            
+
             data.SaveToJson(filePath);
         }
 
@@ -191,7 +237,7 @@ namespace SpineEditor
 
             float previousTime = _currentTime;
             _currentTime += deltaTime * _playbackSpeed;
-            
+
             // 循环播放
             if (AnimationState != null && AnimationState.GetCurrent(0) != null)
             {
@@ -202,11 +248,11 @@ namespace SpineEditor
 
             // 调用基类的 Update 方法
             base.Update(deltaTime * _playbackSpeed);
-            
+
             // 检查是否有事件需要触发
             foreach (var evt in _events)
             {
-                if ((previousTime < evt.Time && _currentTime >= evt.Time) || 
+                if ((previousTime < evt.Time && _currentTime >= evt.Time) ||
                     (previousTime > _currentTime && (previousTime < evt.Time || _currentTime >= evt.Time))) // 处理循环播放
                 {
                     // 触发事件

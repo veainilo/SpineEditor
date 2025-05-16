@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -27,6 +28,7 @@ namespace SpineEditor
         private Button _pauseButton;
         private Button _resetButton;
         private TextBox _speedTextBox;
+        private DropdownList _animationDropdown;
 
         private string _currentFilePath = "events.json";
 
@@ -109,6 +111,10 @@ namespace SpineEditor
             _resetButton = new Button(GraphicsDevice, "Reset", new Rectangle(370, 10, 80, 30));
             _speedTextBox = new TextBox(GraphicsDevice, "Speed", "1.0", new Rectangle(460, 10, 80, 30));
 
+            // 创建动画下拉列表
+            List<string> animationNames = new List<string>(_eventEditor.AnimationNames);
+            _animationDropdown = new DropdownList(GraphicsDevice, _font, "Animation", animationNames, new Rectangle(560, 10, 200, 30));
+
             // 设置按钮事件
             _loadButton.Click += (sender, e) => {
                 // 加载事件数据
@@ -157,6 +163,18 @@ namespace SpineEditor
                 Console.WriteLine($"事件触发: {evt.Name}, 时间: {evt.Time}, 整数值: {evt.IntValue}, 浮点值: {evt.FloatValue}, 字符串值: {evt.StringValue}");
             };
 
+            // 设置动画下拉列表事件
+            _animationDropdown.SelectedIndexChanged += (sender, e) => {
+                if (_animationDropdown.SelectedItem != null)
+                {
+                    // 切换动画
+                    _eventEditor.SwitchAnimation(_animationDropdown.SelectedItem, true);
+
+                    // 更新时间轴的持续时间
+                    _timelineControl.SetDuration(_eventEditor.AnimationDuration);
+                }
+            };
+
             // 尝试加载已有的事件数据
             _eventEditor.LoadEventsFromJson(_currentFilePath);
         }
@@ -177,6 +195,7 @@ namespace SpineEditor
             _pauseButton.Update();
             _resetButton.Update();
             _speedTextBox.Update(gameTime);
+            _animationDropdown.Update();
 
             // 更新时间轴控件
             _timelineControl.Update(gameTime);
@@ -211,6 +230,7 @@ namespace SpineEditor
             _pauseButton.Draw(_spriteBatch, _font);
             _resetButton.Draw(_spriteBatch, _font);
             _speedTextBox.Draw(_spriteBatch, _font);
+            _animationDropdown.Draw(_spriteBatch);
 
             // 绘制当前时间
             string timeText = $"Current Time: {_eventEditor.CurrentTime:0.000} / {_eventEditor.AnimationDuration:0.000}";
