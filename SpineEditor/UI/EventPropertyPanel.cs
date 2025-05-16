@@ -614,6 +614,8 @@ namespace SpineEditor.UI
             _deleteButton.Draw(spriteBatch, _font);
             _nameTextBox.Draw(spriteBatch, _font);
             _timeTextBox.Draw(spriteBatch, _font);
+
+            // 先绘制下拉列表的主体部分
             _eventTypeDropdown.Draw(spriteBatch);
 
             // 根据事件类型绘制特定的 UI 元素
@@ -658,6 +660,19 @@ namespace SpineEditor.UI
                     _soundPitchTextBox.Draw(spriteBatch, _font);
                     break;
             }
+
+            // 如果下拉列表展开，再次绘制它以确保它显示在最上层
+            if (_eventTypeDropdown.IsExpanded)
+            {
+                _eventTypeDropdown.Draw(spriteBatch);
+            }
+
+            // 如果形状类型下拉列表展开，也确保它显示在最上层
+            if (_shapeTypeDropdown.IsExpanded)
+            {
+                _shapeTypeDropdown.Draw(spriteBatch);
+            }
+
         }
 
         /// <summary>

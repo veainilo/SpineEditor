@@ -277,20 +277,23 @@ namespace SpineEditor.Events
             _eventEditor.Draw();
 
             // 绘制 UI 管理器（包含新的时间轴控件）
-            _spriteBatch.Begin();
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, null, null, null);
             _uiManager.Draw(_spriteBatch);
             _spriteBatch.End();
 
             // 绘制左侧面板
-            _spriteBatch.Begin();
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, null, null, null);
             _leftPanel.Draw(_spriteBatch);
+            _spriteBatch.End();
 
             // 绘制视口信息
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, null, null, null);
             _viewport.DrawInfo(_spriteBatch);
+            _spriteBatch.End();
 
-            // 绘制属性编辑面板
+            // 绘制属性编辑面板（最后绘制，确保在最上层）
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, null, null, null);
             _propertyPanel.Draw(_spriteBatch);
-
             _spriteBatch.End();
 
             // 更新左侧面板信息
