@@ -81,6 +81,9 @@ namespace SpineEditor.UI
         private const int DRAG_HANDLE_SIZE = 8;
         private const float MIN_SHAPE_SIZE = 10.0f;
 
+        // 拖拽操作的缩放因子，用于调整拖拽灵敏度
+        private const float DRAG_SCALE_FACTOR = 0.05f; // 极大幅度降低拖拽灵敏度
+
         /// <summary>
         /// 获取或设置当前正在拖拽的形状
         /// </summary>
@@ -175,34 +178,41 @@ namespace SpineEditor.UI
 
                 // 计算鼠标移动距离（相对于Spine坐标系）
                 Vector2 mouseDelta = mousePosition - _dragStartMousePosition;
-                float deltaX = mouseDelta.X / _spineScale;
-                float deltaY = mouseDelta.Y / _spineScale;
+
+                // 应用缩放因子来降低拖拽灵敏度，并考虑Spine缩放
+                // 注意：这里不除以_spineScale，因为我们需要在屏幕坐标系中计算移动距离
+                float deltaX = mouseDelta.X * DRAG_SCALE_FACTOR;
+                float deltaY = mouseDelta.Y * DRAG_SCALE_FACTOR;
 
                 // 根据拖拽操作类型更新形状
+                // 将屏幕坐标转换为Spine坐标系
+                float spineX = deltaX / _spineScale;
+                float spineY = deltaY / _spineScale;
+
                 switch (_dragOperation)
                 {
                     case DragOperationType.Move:
-                        _currentShape.X = _originalShape.X + deltaX;
-                        _currentShape.Y = _originalShape.Y + deltaY;
+                        _currentShape.X = _originalShape.X + spineX;
+                        _currentShape.Y = _originalShape.Y + spineY;
                         break;
 
                     case DragOperationType.ResizeRight:
-                        _currentShape.Width = Math.Max(MIN_SHAPE_SIZE, _originalShape.Width + deltaX);
+                        _currentShape.Width = Math.Max(MIN_SHAPE_SIZE, _originalShape.Width + spineX);
                         break;
 
                     case DragOperationType.ResizeLeft:
-                        float newWidth = Math.Max(MIN_SHAPE_SIZE, _originalShape.Width - deltaX);
+                        float newWidth = Math.Max(MIN_SHAPE_SIZE, _originalShape.Width - spineX);
                         float widthDiff = _originalShape.Width - newWidth;
                         _currentShape.X = _originalShape.X + widthDiff;
                         _currentShape.Width = newWidth;
                         break;
 
                     case DragOperationType.ResizeBottom:
-                        _currentShape.Height = Math.Max(MIN_SHAPE_SIZE, _originalShape.Height + deltaY);
+                        _currentShape.Height = Math.Max(MIN_SHAPE_SIZE, _originalShape.Height + spineY);
                         break;
 
                     case DragOperationType.ResizeTop:
-                        float newHeight = Math.Max(MIN_SHAPE_SIZE, _originalShape.Height - deltaY);
+                        float newHeight = Math.Max(MIN_SHAPE_SIZE, _originalShape.Height - spineY);
                         float heightDiff = _originalShape.Height - newHeight;
                         _currentShape.Y = _originalShape.Y + heightDiff;
                         _currentShape.Height = newHeight;
@@ -210,13 +220,13 @@ namespace SpineEditor.UI
 
                     case DragOperationType.ResizeTopLeft:
                         // 调整宽度
-                        newWidth = Math.Max(MIN_SHAPE_SIZE, _originalShape.Width - deltaX);
+                        newWidth = Math.Max(MIN_SHAPE_SIZE, _originalShape.Width - spineX);
                         widthDiff = _originalShape.Width - newWidth;
                         _currentShape.X = _originalShape.X + widthDiff;
                         _currentShape.Width = newWidth;
 
                         // 调整高度
-                        newHeight = Math.Max(MIN_SHAPE_SIZE, _originalShape.Height - deltaY);
+                        newHeight = Math.Max(MIN_SHAPE_SIZE, _originalShape.Height - spineY);
                         heightDiff = _originalShape.Height - newHeight;
                         _currentShape.Y = _originalShape.Y + heightDiff;
                         _currentShape.Height = newHeight;
@@ -224,10 +234,10 @@ namespace SpineEditor.UI
 
                     case DragOperationType.ResizeTopRight:
                         // 调整宽度
-                        _currentShape.Width = Math.Max(MIN_SHAPE_SIZE, _originalShape.Width + deltaX);
+                        _currentShape.Width = Math.Max(MIN_SHAPE_SIZE, _originalShape.Width + spineX);
 
                         // 调整高度
-                        newHeight = Math.Max(MIN_SHAPE_SIZE, _originalShape.Height - deltaY);
+                        newHeight = Math.Max(MIN_SHAPE_SIZE, _originalShape.Height - spineY);
                         heightDiff = _originalShape.Height - newHeight;
                         _currentShape.Y = _originalShape.Y + heightDiff;
                         _currentShape.Height = newHeight;
@@ -235,19 +245,19 @@ namespace SpineEditor.UI
 
                     case DragOperationType.ResizeBottomLeft:
                         // 调整宽度
-                        newWidth = Math.Max(MIN_SHAPE_SIZE, _originalShape.Width - deltaX);
+                        newWidth = Math.Max(MIN_SHAPE_SIZE, _originalShape.Width - spineX);
                         widthDiff = _originalShape.Width - newWidth;
                         _currentShape.X = _originalShape.X + widthDiff;
                         _currentShape.Width = newWidth;
 
                         // 调整高度
-                        _currentShape.Height = Math.Max(MIN_SHAPE_SIZE, _originalShape.Height + deltaY);
+                        _currentShape.Height = Math.Max(MIN_SHAPE_SIZE, _originalShape.Height + spineY);
                         break;
 
                     case DragOperationType.ResizeBottomRight:
                         // 调整宽度和高度
-                        _currentShape.Width = Math.Max(MIN_SHAPE_SIZE, _originalShape.Width + deltaX);
-                        _currentShape.Height = Math.Max(MIN_SHAPE_SIZE, _originalShape.Height + deltaY);
+                        _currentShape.Width = Math.Max(MIN_SHAPE_SIZE, _originalShape.Width + spineX);
+                        _currentShape.Height = Math.Max(MIN_SHAPE_SIZE, _originalShape.Height + spineY);
                         break;
                 }
 

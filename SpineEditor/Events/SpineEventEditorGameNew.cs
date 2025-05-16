@@ -495,8 +495,8 @@ namespace SpineEditor.Events
                     _attackShapeRenderer.DrawAttackShape(shape, position, scale, shapeColor, true);
 
                     // 更新拖拽处理器
-                    GameTime gameTime = new GameTime();
-                    _attackShapeRenderer.DragHandler.Update(gameTime, position, scale);
+                    GameTime dummyGameTime = new GameTime();
+                    _attackShapeRenderer.DragHandler.Update(dummyGameTime, position, scale);
                 }
             }
             else
