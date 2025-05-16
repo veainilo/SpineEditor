@@ -48,6 +48,9 @@ namespace SpineEditor.Events
             // 设置窗口大小
             _graphics.PreferredBackBufferWidth = 1280;
             _graphics.PreferredBackBufferHeight = 720;
+
+            // 订阅文件拖放事件
+            Window.FileDrop += Window_FileDrop;
         }
 
         /// <summary>
@@ -332,6 +335,93 @@ namespace SpineEditor.Events
             _spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        /// <summary>
+        /// 处理文件拖放事件
+        /// </summary>
+        /// <param name="sender">事件发送者</param>
+        /// <param name="e">事件参数</param>
+        private void Window_FileDrop(object sender, FileDropEventArgs e)
+        {
+            // 检查拖放的文件是否是Spine文件
+            string atlasFile = null;
+            string skelFile = null;
+
+            foreach (string file in e.Files)
+            {
+                string extension = Path.GetExtension(file).ToLower();
+                if (extension == ".atlas")
+                {
+                    atlasFile = file;
+                }
+                else if (extension == ".skel" || extension == ".json")
+                {
+                    skelFile = file;
+                }
+            }
+
+            // 如果找到了.atlas和.skel/.json文件，则加载它们
+            if (atlasFile != null && skelFile != null)
+            {
+                LoadSpineAnimation(atlasFile, skelFile);
+            }
+        }
+
+        /// <summary>
+        /// 加载Spine动画
+        /// </summary>
+        /// <param name="atlasPath">Atlas文件路径</param>
+        /// <param name="skelPath">Skeleton文件路径</param>
+        private void LoadSpineAnimation(string atlasPath, string skelPath)
+        {
+            // 如果已经加载了动画，先清除现有的动画
+            if (_eventEditor != null)
+            {
+                // 加载新的Spine动画
+                bool success = _eventEditor.LoadAnimation(
+                    atlasPath,
+                    skelPath,
+                    0.5f,
+                    new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height / 2)
+                );
+
+                if (success)
+                {
+                    Console.WriteLine($"成功加载Spine动画: {atlasPath}, {skelPath}");
+
+                    // 更新动画下拉列表
+                    List<string> animationNames = new List<string>(_eventEditor.AnimationNames);
+                    _animationDropdown.Items = animationNames;
+
+                    // 设置初始选中的动画
+                    if (animationNames.Count > 0)
+                    {
+                        _animationDropdown.SelectedIndex = 0;
+                    }
+
+                    // 获取动画时长
+                    if (_eventEditor.AnimationState != null && _eventEditor.AnimationNames.Length > 0)
+                    {
+                        string animName = _eventEditor.AnimationNames[0];
+                        _eventEditor.PlayAnimation(animName, true);
+                        _eventEditor.IsPlaying = false; // 初始暂停
+                        float duration = _eventEditor.AnimationDuration;
+                        _timelineControl.SetDuration(duration);
+
+                        // 更新时间轴上的事件
+                        _timelineControl.GetEvents().Clear();
+                        foreach (var evt in _eventEditor.Events)
+                        {
+                            _timelineControl.AddEvent(evt);
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"加载Spine动画失败: {atlasPath}, {skelPath}");
+                }
+            }
         }
     }
 }
