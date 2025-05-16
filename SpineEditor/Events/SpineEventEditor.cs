@@ -123,23 +123,61 @@ namespace SpineEditor.Events
         {
             // 如果当前没有动画，直接返回
             if (AnimationState == null || Skeleton == null)
+            {
+                Console.WriteLine("无法切换动画：AnimationState 或 Skeleton 为空");
                 return false;
+            }
+
+            // 检查动画名称是否有效
+            if (string.IsNullOrEmpty(animationName))
+            {
+                Console.WriteLine("无法切换动画：动画名称为空");
+                return false;
+            }
+
+            // 检查动画是否存在
+            bool animationExists = false;
+            foreach (var anim in Skeleton.Data.Animations)
+            {
+                if (anim.Name == animationName)
+                {
+                    animationExists = true;
+                    break;
+                }
+            }
+
+            if (!animationExists)
+            {
+                Console.WriteLine($"无法切换动画：找不到名为 {animationName} 的动画");
+                return false;
+            }
 
             // 如果动画名称相同，不需要切换
             if (CurrentAnimation == animationName)
+            {
+                Console.WriteLine($"动画已经是 {animationName}，无需切换");
                 return true;
+            }
+
+            Console.WriteLine($"开始切换动画从 {CurrentAnimation} 到 {animationName}");
 
             // 保存当前动画的事件数据
             if (saveEvents && !string.IsNullOrEmpty(CurrentAnimation))
             {
                 string eventFilePath = $"{CurrentAnimation}_events.json";
                 SaveEventsToJson(eventFilePath, CurrentAnimation);
+                Console.WriteLine($"已保存当前动画 {CurrentAnimation} 的事件数据到 {eventFilePath}");
             }
 
             // 播放新动画
             bool success = PlayAnimation(animationName, loop);
             if (!success)
+            {
+                Console.WriteLine($"播放动画 {animationName} 失败");
                 return false;
+            }
+
+            Console.WriteLine($"成功播放动画 {animationName}");
 
             // 重置时间
             _currentTime = 0;
@@ -151,9 +189,11 @@ namespace SpineEditor.Events
             if (loadEvents)
             {
                 string eventFilePath = $"{animationName}_events.json";
-                LoadEventsFromJson(eventFilePath);
+                bool loadSuccess = LoadEventsFromJson(eventFilePath);
+                Console.WriteLine($"加载动画 {animationName} 的事件数据{(loadSuccess ? "成功" : "失败")}");
             }
 
+            Console.WriteLine($"动画切换完成：{animationName}，持续时间：{AnimationDuration}秒");
             return true;
         }
 

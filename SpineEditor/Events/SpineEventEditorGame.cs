@@ -118,7 +118,20 @@ namespace SpineEditor.Events
 
             // 创建动画下拉列表
             List<string> animationNames = new List<string>(_eventEditor.AnimationNames);
+            Console.WriteLine("可用动画列表:");
+            foreach (var anim in animationNames)
+            {
+                Console.WriteLine($"  - {anim}");
+            }
+
             _animationDropdown = new DropdownList(GraphicsDevice, _font, "Animation", animationNames, new Rectangle(560, 10, 200, 30));
+
+            // 设置初始选中的动画
+            if (animationNames.Count > 0)
+            {
+                Console.WriteLine($"设置初始动画为: {animationNames[0]}");
+                _animationDropdown.SelectedIndex = 0;
+            }
 
             // 设置按钮事件
             _loadButton.Click += (sender, e) => {
@@ -172,11 +185,21 @@ namespace SpineEditor.Events
             _animationDropdown.SelectedIndexChanged += (sender, e) => {
                 if (_animationDropdown.SelectedItem != null)
                 {
-                    // 切换动画
-                    _eventEditor.SwitchAnimation(_animationDropdown.SelectedItem, true);
+                    Console.WriteLine($"正在切换动画到: {_animationDropdown.SelectedItem}");
 
-                    // 更新时间轴的持续时间
-                    _timelineControl.SetDuration(_eventEditor.AnimationDuration);
+                    // 切换动画
+                    bool success = _eventEditor.SwitchAnimation(_animationDropdown.SelectedItem, true);
+
+                    if (success)
+                    {
+                        Console.WriteLine($"成功切换到动画: {_animationDropdown.SelectedItem}");
+                        // 更新时间轴的持续时间
+                        _timelineControl.SetDuration(_eventEditor.AnimationDuration);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"切换动画失败: {_animationDropdown.SelectedItem}");
+                    }
                 }
             };
 
@@ -193,6 +216,10 @@ namespace SpineEditor.Events
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
+            // 获取鼠标状态，用于调试
+            MouseState mouseState = Mouse.GetState();
+            Console.WriteLine($"鼠标位置: {mouseState.Position}");
+
             // 更新 UI 按钮
             _loadButton.Update();
             _saveButton.Update();
@@ -200,6 +227,9 @@ namespace SpineEditor.Events
             _pauseButton.Update();
             _resetButton.Update();
             _speedTextBox.Update(gameTime);
+
+            // 更新动画下拉列表 - 确保它能接收到鼠标事件
+            Console.WriteLine("更新动画下拉列表...");
             _animationDropdown.Update();
 
             // 更新视口控件
@@ -239,7 +269,8 @@ namespace SpineEditor.Events
             // 绘制 Spine 动画（在网格之上）
             _eventEditor.Draw();
 
-            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
+            // 使用 Immediate 模式确保 UI 元素在最上层
+            _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
 
             // 绘制 UI 按钮
             _loadButton.Draw(_spriteBatch, _font);

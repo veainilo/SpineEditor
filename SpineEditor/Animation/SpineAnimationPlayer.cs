@@ -215,18 +215,49 @@ namespace SpineEditor.Animation
         public bool PlayAnimation(string animationName, bool loop = true)
         {
             if (_animationState == null || _skeleton == null)
+            {
+                Console.WriteLine($"播放动画 {animationName} 失败: AnimationState 或 Skeleton 为空");
                 return false;
+            }
 
             try
             {
+                // 检查动画是否存在
+                bool animationExists = false;
+                foreach (var anim in _skeleton.Data.Animations)
+                {
+                    if (anim.Name == animationName)
+                    {
+                        animationExists = true;
+                        break;
+                    }
+                }
+
+                if (!animationExists)
+                {
+                    Console.WriteLine($"播放动画 {animationName} 失败: 动画不存在");
+                    Console.WriteLine("可用动画:");
+                    foreach (var anim in _skeleton.Data.Animations)
+                    {
+                        Console.WriteLine($"  - {anim.Name}");
+                    }
+                    return false;
+                }
+
                 _animationState.SetAnimation(0, animationName, loop);
                 _currentAnimation = animationName;
                 _loop = loop;
+
+                Console.WriteLine($"成功播放动画: {animationName}, 持续时间: {_animationState.GetCurrent(0).Animation.Duration}秒");
                 return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"播放动画 {animationName} 时出错: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"内部错误: {ex.InnerException.Message}");
+                }
                 return false;
             }
         }

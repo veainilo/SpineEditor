@@ -48,6 +48,7 @@ namespace SpineEditor.UI
                     if (oldIndex != _selectedIndex)
                     {
                         SelectedIndexChanged?.Invoke(this, EventArgs.Empty);
+                        Console.WriteLine($"Selected animation changed to: {(_selectedIndex >= 0 ? _items[_selectedIndex] : "None")}");
                     }
                 }
             }
@@ -129,28 +130,47 @@ namespace SpineEditor.UI
             // 检查鼠标是否悬停在控件上
             _isHovered = _bounds.Contains(mouseState.Position);
 
+            // 输出调试信息
+            if (_isHovered)
+            {
+                Console.WriteLine($"鼠标悬停在下拉列表上: 位置 = {mouseState.Position}, 下拉列表区域 = {_bounds}");
+            }
+
             // 处理主控件的点击事件
             if (_isHovered && mouseState.LeftButton == ButtonState.Released && _prevMouseState.LeftButton == ButtonState.Pressed)
             {
+                Console.WriteLine("点击了下拉列表主控件，切换展开状态");
                 _isExpanded = !_isExpanded;
+                Console.WriteLine($"下拉列表展开状态: {_isExpanded}");
             }
 
             // 如果下拉列表展开，处理项目选择
             if (_isExpanded)
             {
-                // 检查鼠标是否在下拉列表区域内
-                bool isMouseOverDropdown = dropdownRect.Contains(mouseState.Position);
+                Console.WriteLine($"下拉列表已展开，区域: {dropdownRect}");
 
+                // 检查鼠标是否在下拉列表区域内或主控件区域内
+                bool isMouseOverDropdown = dropdownRect.Contains(mouseState.Position);
+                bool isMouseOverMainControl = _bounds.Contains(mouseState.Position);
+
+                // 如果鼠标在下拉列表区域内
                 if (isMouseOverDropdown)
                 {
+                    Console.WriteLine($"鼠标在下拉列表区域内: {mouseState.Position}");
+
                     // 计算鼠标悬停的项目索引
                     int hoveredIndex = _scrollOffset + (mouseState.Y - dropdownRect.Y) / itemHeight;
+                    Console.WriteLine($"悬停的项目索引: {hoveredIndex}");
 
                     // 如果点击了项目，选中它并关闭下拉列表
                     if (mouseState.LeftButton == ButtonState.Released && _prevMouseState.LeftButton == ButtonState.Pressed)
                     {
+                        Console.WriteLine($"点击了下拉列表项目区域");
+
                         if (hoveredIndex >= 0 && hoveredIndex < _items.Count)
                         {
+                            Console.WriteLine($"点击了有效的项目: 索引 = {hoveredIndex}, 值 = {_items[hoveredIndex]}");
+
                             // 记录旧的选中索引
                             int oldIndex = _selectedIndex;
 
@@ -160,11 +180,17 @@ namespace SpineEditor.UI
                             // 如果索引发生变化，触发事件
                             if (oldIndex != _selectedIndex)
                             {
+                                Console.WriteLine($"索引发生变化，触发 SelectedIndexChanged 事件: {oldIndex} -> {_selectedIndex}");
                                 SelectedIndexChanged?.Invoke(this, EventArgs.Empty);
                                 Console.WriteLine($"Selected animation changed to: {_items[_selectedIndex]}");
                             }
+                            else
+                            {
+                                Console.WriteLine($"索引未变化，不触发事件: {oldIndex}");
+                            }
 
                             _isExpanded = false;
+                            Console.WriteLine("关闭下拉列表");
                         }
                     }
 
@@ -173,11 +199,13 @@ namespace SpineEditor.UI
                     {
                         int scrollDelta = (mouseState.ScrollWheelValue - _prevMouseState.ScrollWheelValue) / 120;
                         _scrollOffset = MathHelper.Clamp(_scrollOffset - scrollDelta, 0, Math.Max(0, _items.Count - _maxVisibleItems));
+                        Console.WriteLine($"滚动下拉列表: 偏移 = {_scrollOffset}");
                     }
                 }
-                // 如果点击了下拉列表外部，关闭下拉列表
-                else if (mouseState.LeftButton == ButtonState.Released && _prevMouseState.LeftButton == ButtonState.Pressed)
+                // 如果点击了下拉列表外部且不是主控件区域，关闭下拉列表
+                else if (!isMouseOverMainControl && mouseState.LeftButton == ButtonState.Released && _prevMouseState.LeftButton == ButtonState.Pressed)
                 {
+                    Console.WriteLine("点击了下拉列表外部（非主控件区域），关闭下拉列表");
                     _isExpanded = false;
                 }
             }
@@ -195,6 +223,8 @@ namespace SpineEditor.UI
             if (!_visible)
                 return;
 
+            Console.WriteLine($"绘制下拉列表: 区域 = {_bounds}, 展开状态 = {_isExpanded}, 选中索引 = {_selectedIndex}");
+
             // 绘制标签
             if (!string.IsNullOrEmpty(_label))
             {
@@ -205,9 +235,9 @@ namespace SpineEditor.UI
             Color backgroundColor = _isHovered ? new Color(60, 60, 60) : new Color(40, 40, 40);
             spriteBatch.Draw(_texture, _bounds, backgroundColor);
 
-            // 绘制边框
-            Color borderColor = _isHovered ? Color.White : new Color(100, 100, 100);
-            DrawBorder(spriteBatch, _bounds, borderColor, 1);
+            // 绘制边框 - 使用更明显的颜色
+            Color borderColor = _isHovered ? Color.Yellow : new Color(150, 150, 150);
+            DrawBorder(spriteBatch, _bounds, borderColor, 2); // 增加边框厚度
 
             // 绘制选中项
             if (_selectedIndex >= 0 && _selectedIndex < _items.Count)
@@ -228,7 +258,7 @@ namespace SpineEditor.UI
                 spriteBatch.DrawString(_font, text, new Vector2(_bounds.X + 5, _bounds.Y + (_bounds.Height - _font.MeasureString(text).Y) / 2), Color.White);
             }
 
-            // 绘制下拉箭头
+            // 绘制下拉箭头 - 使用更明显的颜色
             DrawArrow(spriteBatch, new Vector2(_bounds.X + _bounds.Width - 20, _bounds.Y + _bounds.Height / 2), _isExpanded);
 
             // 如果下拉列表展开，绘制项目列表
@@ -238,11 +268,13 @@ namespace SpineEditor.UI
                 int visibleItems = Math.Min(_items.Count, _maxVisibleItems);
                 Rectangle dropdownRect = new Rectangle(_bounds.X, _bounds.Y + _bounds.Height, _bounds.Width, itemHeight * visibleItems);
 
+                Console.WriteLine($"绘制下拉列表项目: 区域 = {dropdownRect}, 可见项目数 = {visibleItems}");
+
                 // 绘制下拉列表背景
                 spriteBatch.Draw(_texture, dropdownRect, new Color(50, 50, 50));
 
-                // 绘制边框
-                DrawBorder(spriteBatch, dropdownRect, new Color(100, 100, 100), 1);
+                // 绘制边框 - 使用更明显的颜色
+                DrawBorder(spriteBatch, dropdownRect, Color.Orange, 2); // 使用橙色边框，增加厚度
 
                 // 绘制项目
                 for (int i = 0; i < visibleItems; i++)
