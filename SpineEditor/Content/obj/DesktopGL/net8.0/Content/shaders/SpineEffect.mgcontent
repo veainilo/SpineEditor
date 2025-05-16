@@ -3,7 +3,7 @@
   <SourceFile>T:/midplat/monogame/SpineEditor/Content/shaders/SpineEffect.fx</SourceFile>
   <SourceTime>2025-05-16T10:50:56.0693028+08:00</SourceTime>
   <DestFile>T:/midplat/monogame/SpineEditor/Content/bin/DesktopGL/Content/shaders/SpineEffect.xnb</DestFile>
-  <DestTime>2025-05-16T10:55:39.780339+08:00</DestTime>
+  <DestTime>2025-05-16T11:01:51.6081786+08:00</DestTime>
   <Importer>EffectImporter</Importer>
   <ImporterTime>2025-04-05T18:10:54+08:00</ImporterTime>
   <Processor>EffectProcessor</Processor>
