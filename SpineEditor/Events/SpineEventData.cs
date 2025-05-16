@@ -10,10 +10,57 @@ using System.Collections.Concurrent;
 namespace SpineEditor.Events
 {
     /// <summary>
+    /// 事件类型枚举
+    /// </summary>
+    public enum EventType
+    {
+        /// <summary>
+        /// 普通事件
+        /// </summary>
+        Normal,
+
+        /// <summary>
+        /// 攻击事件
+        /// </summary>
+        Attack,
+
+        /// <summary>
+        /// 特效事件
+        /// </summary>
+        Effect,
+
+        /// <summary>
+        /// 声音事件
+        /// </summary>
+        Sound
+    }
+
+    /// <summary>
+    /// 形状类型枚举
+    /// </summary>
+    public enum ShapeType
+    {
+        /// <summary>
+        /// 矩形
+        /// </summary>
+        Rectangle,
+
+        /// <summary>
+        /// 圆形
+        /// </summary>
+        Circle
+    }
+
+    /// <summary>
     /// 表示攻击形状
     /// </summary>
     public class AttackShape
     {
+        /// <summary>
+        /// 形状类型
+        /// </summary>
+        public ShapeType Type { get; set; } = ShapeType.Rectangle;
+
         /// <summary>
         /// X 坐标
         /// </summary>
@@ -25,17 +72,17 @@ namespace SpineEditor.Events
         public float Y { get; set; }
 
         /// <summary>
-        /// 宽度
+        /// 宽度（矩形）或半径（圆形）
         /// </summary>
         public float Width { get; set; }
 
         /// <summary>
-        /// 高度
+        /// 高度（仅矩形）
         /// </summary>
         public float Height { get; set; }
 
         /// <summary>
-        /// 旋转角度
+        /// 旋转角度（仅矩形）
         /// </summary>
         public float Rotation { get; set; }
     }
@@ -58,7 +105,54 @@ namespace SpineEditor.Events
         /// <summary>
         /// 攻击形状
         /// </summary>
-        public AttackShape Shape { get; set; }
+        public AttackShape Shape { get; set; } = new AttackShape();
+    }
+
+    /// <summary>
+    /// 表示特效数据
+    /// </summary>
+    public class EffectData
+    {
+        /// <summary>
+        /// 特效名称
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// 特效位置 X
+        /// </summary>
+        public float X { get; set; }
+
+        /// <summary>
+        /// 特效位置 Y
+        /// </summary>
+        public float Y { get; set; }
+
+        /// <summary>
+        /// 特效缩放
+        /// </summary>
+        public float Scale { get; set; } = 1.0f;
+    }
+
+    /// <summary>
+    /// 表示声音数据
+    /// </summary>
+    public class SoundData
+    {
+        /// <summary>
+        /// 声音名称
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// 音量
+        /// </summary>
+        public float Volume { get; set; } = 1.0f;
+
+        /// <summary>
+        /// 音调
+        /// </summary>
+        public float Pitch { get; set; } = 1.0f;
     }
 
     /// <summary>
@@ -84,12 +178,22 @@ namespace SpineEditor.Events
         /// <summary>
         /// 事件类型
         /// </summary>
-        public string Type { get; set; }
+        public EventType EventType { get; set; } = EventType.Normal;
 
         /// <summary>
-        /// 攻击数据
+        /// 攻击数据（仅当 EventType 为 Attack 时有效）
         /// </summary>
         public AttackData Attack { get; set; }
+
+        /// <summary>
+        /// 特效数据（仅当 EventType 为 Effect 时有效）
+        /// </summary>
+        public EffectData Effect { get; set; }
+
+        /// <summary>
+        /// 声音数据（仅当 EventType 为 Sound 时有效）
+        /// </summary>
+        public SoundData Sound { get; set; }
 
         /// <summary>
         /// 整数参数（兼容旧版本）
@@ -117,7 +221,7 @@ namespace SpineEditor.Events
             Name = "New Event";
             Time = 0;
             Frame = 0;
-            Type = "";
+            EventType = EventType.Normal;
             IntValue = 0;
             FloatValue = 0;
             StringValue = "";
@@ -128,15 +232,40 @@ namespace SpineEditor.Events
         /// </summary>
         /// <param name="name">事件名称</param>
         /// <param name="time">事件触发时间（秒）</param>
-        /// <param name="intValue">整数参数</param>
-        /// <param name="floatValue">浮点参数</param>
-        /// <param name="stringValue">字符串参数</param>
-        public FrameEvent(string name, float time, int intValue = 0, float floatValue = 0, string stringValue = "")
+        /// <param name="eventType">事件类型</param>
+        public FrameEvent(string name, float time, EventType eventType = EventType.Normal)
         {
             Name = name;
             Time = time;
             Frame = (int)(time * 30); // 假设 30 帧每秒
-            Type = "";
+            EventType = eventType;
+
+            // 根据事件类型初始化相应的数据
+            switch (eventType)
+            {
+                case EventType.Attack:
+                    Attack = new AttackData();
+                    break;
+                case EventType.Effect:
+                    Effect = new EffectData();
+                    break;
+                case EventType.Sound:
+                    Sound = new SoundData();
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 创建一个新的帧事件（兼容旧版本）
+        /// </summary>
+        /// <param name="name">事件名称</param>
+        /// <param name="time">事件触发时间（秒）</param>
+        /// <param name="intValue">整数参数</param>
+        /// <param name="floatValue">浮点参数</param>
+        /// <param name="stringValue">字符串参数</param>
+        public FrameEvent(string name, float time, int intValue = 0, float floatValue = 0, string stringValue = "")
+            : this(name, time, EventType.Normal)
+        {
             IntValue = intValue;
             FloatValue = floatValue;
             StringValue = stringValue;

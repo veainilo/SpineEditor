@@ -239,7 +239,7 @@ namespace SpineEditor.Events
             // 绘制 Spine 动画（在网格之上）
             _eventEditor.Draw();
 
-            _spriteBatch.Begin();
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone);
 
             // 绘制 UI 按钮
             _loadButton.Draw(_spriteBatch, _font);
@@ -248,6 +248,8 @@ namespace SpineEditor.Events
             _pauseButton.Draw(_spriteBatch, _font);
             _resetButton.Draw(_spriteBatch, _font);
             _speedTextBox.Draw(_spriteBatch, _font);
+
+            // 绘制动画下拉列表（确保在最上层）
             _animationDropdown.Draw(_spriteBatch);
 
             // 绘制视口控件（除了网格）

@@ -165,6 +165,16 @@ namespace SpineEditor.UI
         private KeyboardState _prevKeyboardState;
         private float _cursorBlinkTime;
         private bool _showCursor;
+        private bool _visible = true;
+
+        /// <summary>
+        /// 获取或设置控件是否可见
+        /// </summary>
+        public bool Visible
+        {
+            get => _visible;
+            set => _visible = value;
+        }
 
         /// <summary>
         /// 获取或设置文本
@@ -289,6 +299,10 @@ namespace SpineEditor.UI
         /// <param name="font">字体</param>
         public void Draw(SpriteBatch spriteBatch, SpriteFont font)
         {
+            // 如果控件不可见，则不绘制
+            if (!_visible)
+                return;
+
             // 绘制标签
             if (!string.IsNullOrEmpty(_label))
             {

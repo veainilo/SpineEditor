@@ -22,6 +22,16 @@ namespace SpineEditor.UI
         private int _maxVisibleItems = 5;
         private int _scrollOffset = 0;
         private bool _isHovered = false;
+        private bool _visible = true;
+
+        /// <summary>
+        /// 获取或设置控件是否可见
+        /// </summary>
+        public bool Visible
+        {
+            get => _visible;
+            set => _visible = value;
+        }
 
         /// <summary>
         /// 获取或设置选中项的索引
@@ -141,7 +151,19 @@ namespace SpineEditor.UI
                     {
                         if (hoveredIndex >= 0 && hoveredIndex < _items.Count)
                         {
-                            SelectedIndex = hoveredIndex;
+                            // 记录旧的选中索引
+                            int oldIndex = _selectedIndex;
+
+                            // 设置新的选中索引
+                            _selectedIndex = hoveredIndex;
+
+                            // 如果索引发生变化，触发事件
+                            if (oldIndex != _selectedIndex)
+                            {
+                                SelectedIndexChanged?.Invoke(this, EventArgs.Empty);
+                                Console.WriteLine($"Selected animation changed to: {_items[_selectedIndex]}");
+                            }
+
                             _isExpanded = false;
                         }
                     }
@@ -169,6 +191,10 @@ namespace SpineEditor.UI
         /// <param name="spriteBatch">精灵批处理</param>
         public void Draw(SpriteBatch spriteBatch)
         {
+            // 如果控件不可见，则不绘制
+            if (!_visible)
+                return;
+
             // 绘制标签
             if (!string.IsNullOrEmpty(_label))
             {

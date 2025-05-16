@@ -100,7 +100,7 @@ namespace SpineEditor.UI
             // 设置菜单项点击事件
             addEventItem.Click += (sender, e) => {
                 // 在上下文菜单位置添加新事件
-                _selectedEvent = new FrameEvent("New Event", _contextMenuTime);
+                _selectedEvent = new FrameEvent("New Event", _contextMenuTime, 0, 0, "");
                 _eventEditor.AddEvent(_selectedEvent.Name, _selectedEvent.Time);
                 OnEventSelected?.Invoke(this, _selectedEvent);
             };
