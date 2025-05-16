@@ -242,6 +242,13 @@ namespace SpineEditor.Events
                 isMouseOverLeftPanel = _leftPanel.Bounds.Contains(mouseState.Position);
             }
 
+            // 检查鼠标是否在右侧属性面板区域内
+            bool isMouseOverPropertyPanel = false;
+            if (_propertyPanel != null)
+            {
+                isMouseOverPropertyPanel = _propertyPanel.Bounds.Contains(mouseState.Position);
+            }
+
             // 更新 UI 管理器
             _uiManager.Update(gameTime);
 
@@ -249,7 +256,7 @@ namespace SpineEditor.Events
             _leftPanel.Update(gameTime);
 
             // 更新视口控件，只有当鼠标不在时间轴控件范围内且不在左侧面板区域内时才处理滚轮事件
-            _viewport.Update(gameTime, !isMouseOverTimeline && !isMouseOverLeftPanel);
+            _viewport.Update(gameTime, !isMouseOverTimeline && !isMouseOverLeftPanel && !isMouseOverPropertyPanel);
 
             // 更新属性编辑面板
             _propertyPanel.Update(gameTime);
@@ -479,11 +486,23 @@ namespace SpineEditor.Events
                     Vector2 position = _eventEditor.Position;
                     float scale = _eventEditor.Scale;
 
+                    // 设置拖拽处理器的当前形状
+                    _attackShapeRenderer.DragHandler.CurrentShape = shape;
+
                     // 绘制攻击形状
                     // 使用半透明红色，使形状更加明显
                     Color shapeColor = new Color(255, 0, 0, 128);
-                    _attackShapeRenderer.DrawAttackShape(shape, position, scale, shapeColor);
+                    _attackShapeRenderer.DrawAttackShape(shape, position, scale, shapeColor, true);
+
+                    // 更新拖拽处理器
+                    GameTime gameTime = new GameTime();
+                    _attackShapeRenderer.DragHandler.Update(gameTime, position, scale);
                 }
+            }
+            else
+            {
+                // 如果没有选中攻击形状，清除拖拽处理器的当前形状
+                _attackShapeRenderer.DragHandler.CurrentShape = null;
             }
         }
     }

@@ -42,7 +42,20 @@ namespace SpineEditor.UI
             // 初始化顶点数组
             _vertices = new VertexPositionColor[MAX_VERTICES];
             _vertexCount = 0;
+
+            // 创建拖拽处理器
+            _dragHandler = new ShapeDragHandler();
         }
+
+        /// <summary>
+        /// 拖拽处理器
+        /// </summary>
+        private ShapeDragHandler _dragHandler;
+
+        /// <summary>
+        /// 获取拖拽处理器
+        /// </summary>
+        public ShapeDragHandler DragHandler => _dragHandler;
 
         /// <summary>
         /// 绘制攻击形状
@@ -51,10 +64,11 @@ namespace SpineEditor.UI
         /// <param name="position">Spine动画的位置（原点位置）</param>
         /// <param name="scale">缩放</param>
         /// <param name="color">颜色</param>
+        /// <param name="showHandles">是否显示拖拽控制点</param>
         /// <remarks>
         /// 攻击形状的坐标是相对于Spine动画原点的，需要将其转换为屏幕坐标
         /// </remarks>
-        public void DrawAttackShape(AttackShape attackShape, Vector2 position, float scale, Color color)
+        public void DrawAttackShape(AttackShape attackShape, Vector2 position, float scale, Color color, bool showHandles = false)
         {
             if (attackShape == null)
                 return;
@@ -76,6 +90,18 @@ namespace SpineEditor.UI
                         attackShape.Rotation,
                         color
                     );
+
+                    // 如果需要显示拖拽控制点
+                    if (showHandles)
+                    {
+                        DrawResizeHandles(
+                            actualPosition,
+                            attackShape.Width * scale,
+                            attackShape.Height * scale,
+                            attackShape.Rotation,
+                            Color.Yellow
+                        );
+                    }
                     break;
 
                 case ShapeType.Circle:
@@ -85,6 +111,16 @@ namespace SpineEditor.UI
                         32, // 分段数
                         color
                     );
+
+                    // 如果需要显示拖拽控制点
+                    if (showHandles)
+                    {
+                        DrawCircleResizeHandles(
+                            actualPosition,
+                            attackShape.Width * scale,
+                            Color.Yellow
+                        );
+                    }
                     break;
             }
         }
@@ -199,6 +235,90 @@ namespace SpineEditor.UI
                     _vertexCount / 2
                 );
             }
+        }
+
+        /// <summary>
+        /// 绘制矩形的调整大小控制点
+        /// </summary>
+        private void DrawResizeHandles(Vector2 center, float width, float height, float rotation, Color color)
+        {
+            // 计算矩形的四个角点和四个边的中点
+            Vector2 halfSize = new Vector2(width / 2, height / 2);
+            Vector2[] corners = new Vector2[8];
+
+            // 四个角点
+            corners[0] = new Vector2(-halfSize.X, -halfSize.Y); // 左上
+            corners[1] = new Vector2(halfSize.X, -halfSize.Y);  // 右上
+            corners[2] = new Vector2(halfSize.X, halfSize.Y);   // 右下
+            corners[3] = new Vector2(-halfSize.X, halfSize.Y);  // 左下
+
+            // 四个边的中点
+            corners[4] = new Vector2(0, -halfSize.Y);           // 上边中点
+            corners[5] = new Vector2(halfSize.X, 0);            // 右边中点
+            corners[6] = new Vector2(0, halfSize.Y);            // 下边中点
+            corners[7] = new Vector2(-halfSize.X, 0);           // 左边中点
+
+            // 应用旋转
+            float radians = MathHelper.ToRadians(rotation);
+            for (int i = 0; i < 8; i++)
+            {
+                float x = corners[i].X;
+                float y = corners[i].Y;
+                corners[i].X = x * (float)Math.Cos(radians) - y * (float)Math.Sin(radians);
+                corners[i].Y = x * (float)Math.Sin(radians) + y * (float)Math.Cos(radians);
+                corners[i] += center;
+            }
+
+            // 绘制控制点
+            const float handleSize = 6.0f;
+            for (int i = 0; i < 8; i++)
+            {
+                DrawSquareHandle(corners[i], handleSize, color);
+            }
+        }
+
+        /// <summary>
+        /// 绘制圆形的调整大小控制点
+        /// </summary>
+        private void DrawCircleResizeHandles(Vector2 center, float radius, Color color)
+        {
+            const float handleSize = 6.0f;
+
+            // 绘制四个方向的控制点
+            DrawSquareHandle(new Vector2(center.X, center.Y - radius), handleSize, color); // 上
+            DrawSquareHandle(new Vector2(center.X + radius, center.Y), handleSize, color); // 右
+            DrawSquareHandle(new Vector2(center.X, center.Y + radius), handleSize, color); // 下
+            DrawSquareHandle(new Vector2(center.X - radius, center.Y), handleSize, color); // 左
+
+            // 绘制中心点（用于移动）
+            DrawSquareHandle(center, handleSize, color);
+        }
+
+        /// <summary>
+        /// 绘制方形控制点
+        /// </summary>
+        private void DrawSquareHandle(Vector2 position, float size, Color color)
+        {
+            _vertexCount = 0;
+
+            float halfSize = size / 2;
+            Vector2[] corners = new Vector2[4]
+            {
+                new Vector2(position.X - halfSize, position.Y - halfSize), // 左上
+                new Vector2(position.X + halfSize, position.Y - halfSize), // 右上
+                new Vector2(position.X + halfSize, position.Y + halfSize), // 右下
+                new Vector2(position.X - halfSize, position.Y + halfSize)  // 左下
+            };
+
+            // 准备顶点
+            for (int i = 0; i < 4; i++)
+            {
+                int nextIndex = (i + 1) % 4;
+                AddLine(corners[i], corners[nextIndex], color);
+            }
+
+            // 绘制线条
+            DrawLines();
         }
     }
 }

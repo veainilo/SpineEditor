@@ -22,6 +22,11 @@ namespace SpineEditor.UI
         /// </summary>
         public FrameEvent SelectedEvent => _selectedEvent;
 
+        /// <summary>
+        /// 获取面板的边界
+        /// </summary>
+        public Rectangle Bounds => _bounds;
+
         // 通用 UI 元素
         private Button _deleteButton;
         private TextBox _nameTextBox;

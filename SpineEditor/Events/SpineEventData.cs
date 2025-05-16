@@ -62,24 +62,24 @@ namespace SpineEditor.Events
         public ShapeType Type { get; set; } = ShapeType.Rectangle;
 
         /// <summary>
-        /// X 坐标
+        /// X 坐标（相对于Spine动画原点）
         /// </summary>
         public float X { get; set; }
 
         /// <summary>
-        /// Y 坐标
+        /// Y 坐标（相对于Spine动画原点）
         /// </summary>
         public float Y { get; set; }
 
         /// <summary>
         /// 宽度（矩形）或半径（圆形）
         /// </summary>
-        public float Width { get; set; }
+        public float Width { get; set; } = 50.0f; // 默认宽度为50
 
         /// <summary>
         /// 高度（仅矩形）
         /// </summary>
-        public float Height { get; set; }
+        public float Height { get; set; } = 50.0f; // 默认高度为50
 
         /// <summary>
         /// 旋转角度（仅矩形）
