@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 using Microsoft.Xna.Framework;
 using System.Collections.Concurrent;
 
-namespace SpineEditor
+namespace SpineEditor.Events
 {
     /// <summary>
     /// 表示攻击形状

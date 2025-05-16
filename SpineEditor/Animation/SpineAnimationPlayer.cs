@@ -4,7 +4,7 @@ using Spine;
 using System;
 using System.IO;
 
-namespace SpineEditor
+namespace SpineEditor.Animation
 {
     /// <summary>
     /// Spine 动画播放器类，用于加载和渲染 Spine 动画

@@ -1,6 +1,7 @@
 ﻿using System;
+using SpineEditor.Events;
 
-namespace SpineEditor
+namespace SpineEditor.Core
 {
     public static class Program
     {

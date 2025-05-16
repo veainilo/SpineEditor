@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 
-namespace SpineEditor
+namespace SpineEditor.Animation
 {
     /// <summary>
     /// Spine 视口类，用于管理动画的缩放、拖拽和网格线显示

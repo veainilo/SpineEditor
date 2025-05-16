@@ -5,8 +5,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SpineEditor.UI;
+using SpineEditor.Animation;
 
-namespace SpineEditor
+namespace SpineEditor.Events
 {
     /// <summary>
     /// Spine 帧事件编辑器游戏类

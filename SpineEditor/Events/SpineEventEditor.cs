@@ -5,8 +5,9 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Spine;
+using SpineEditor.Animation;
 
-namespace SpineEditor
+namespace SpineEditor.Events
 {
     /// <summary>
     /// Spine 事件编辑器，扩展 SpineAnimationPlayer 添加事件管理功能
