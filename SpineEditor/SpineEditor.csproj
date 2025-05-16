@@ -40,6 +40,7 @@
     <Compile Include="UI\TimelineControl.cs" />
     <Compile Include="UI\UIControls.cs" />
     <Compile Include="UI\DropdownList.cs" />
+    <Compile Include="UI\ContextMenu.cs" />
   </ItemGroup>
   <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
     <Message Text="Restoring dotnet tools" Importance="High" />

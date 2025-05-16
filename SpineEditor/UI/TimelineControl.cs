@@ -26,6 +26,8 @@ namespace SpineEditor.UI
         private bool _isDraggingPlayhead = false;
         private bool _isDraggingEvent = false;
         private float _dragOffset = 0;
+        private ContextMenu _contextMenu;
+        private float _contextMenuTime;
 
         /// <summary>
         /// 获取选中的事件
@@ -89,6 +91,33 @@ namespace SpineEditor.UI
             }
             _playheadMarker.SetData(playheadMarkerData);
 
+            // 创建上下文菜单
+            _contextMenu = new ContextMenu(graphicsDevice, font);
+            MenuItem addEventItem = _contextMenu.AddItem("Add Event");
+            MenuItem deleteEventItem = _contextMenu.AddItem("Delete Event");
+
+            // 设置菜单项点击事件
+            addEventItem.Click += (sender, e) => {
+                // 在上下文菜单位置添加新事件
+                _selectedEvent = new FrameEvent("New Event", _contextMenuTime);
+                _eventEditor.AddEvent(_selectedEvent.Name, _selectedEvent.Time);
+                OnEventSelected?.Invoke(this, _selectedEvent);
+            };
+
+            deleteEventItem.Click += (sender, e) => {
+                // 删除选中的事件
+                if (_selectedEvent != null)
+                {
+                    int index = _eventEditor.Events.IndexOf(_selectedEvent);
+                    if (index >= 0)
+                    {
+                        _eventEditor.RemoveEvent(index);
+                        _selectedEvent = null;
+                        OnEventSelected?.Invoke(this, null);
+                    }
+                }
+            };
+
             _prevMouseState = Mouse.GetState();
         }
 
@@ -131,7 +160,7 @@ namespace SpineEditor.UI
             {
                 float clickTime = TimeFromX(mouseState.X);
 
-                // 如果鼠标按下
+                // 如果鼠标左键按下
                 if (mouseState.LeftButton == ButtonState.Pressed)
                 {
                     // 检查是否点击了播放头或者正在拖动播放头
@@ -169,14 +198,6 @@ namespace SpineEditor.UI
                                 break;
                             }
                         }
-
-                        // 如果没有点击事件，并且是双击，则添加新事件
-                        if (!eventClicked && _prevMouseState.LeftButton == ButtonState.Released)
-                        {
-                            _selectedEvent = new FrameEvent("New Event", clickTime);
-                            _eventEditor.AddEvent(_selectedEvent.Name, _selectedEvent.Time);
-                            OnEventSelected?.Invoke(this, _selectedEvent);
-                        }
                     }
                 }
 
@@ -189,7 +210,20 @@ namespace SpineEditor.UI
                         _eventEditor.CurrentTime = MathHelper.Clamp(clickTime, 0, _duration);
                     }
                 }
+
+                // 处理右键点击，显示上下文菜单
+                if (_prevMouseState.RightButton == ButtonState.Released && mouseState.RightButton == ButtonState.Pressed)
+                {
+                    // 保存右键点击位置的时间
+                    _contextMenuTime = clickTime;
+
+                    // 显示上下文菜单
+                    _contextMenu.Show(new Vector2(mouseState.X, mouseState.Y));
+                }
             }
+
+            // 更新上下文菜单
+            _contextMenu.Update();
 
             // 如果鼠标释放，重置拖动状态
             if (mouseState.LeftButton == ButtonState.Released)
@@ -274,6 +308,9 @@ namespace SpineEditor.UI
                 spriteBatch.Draw(_playheadMarker, new Vector2(currentX - 4, _bounds.Y + 5), Color.White);
                 spriteBatch.Draw(_pixel, new Rectangle((int)currentX, _bounds.Y + 20, 1, _bounds.Height - 20), Color.Yellow);
             }
+
+            // 绘制上下文菜单
+            _contextMenu.Draw(spriteBatch);
         }
 
         /// <summary>
