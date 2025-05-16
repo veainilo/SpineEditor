@@ -58,7 +58,12 @@ namespace SpineEditor.UI
         /// <summary>
         /// 调整右下角
         /// </summary>
-        ResizeBottomRight
+        ResizeBottomRight,
+
+        /// <summary>
+        /// 旋转
+        /// </summary>
+        Rotate
     }
 
     /// <summary>
@@ -73,6 +78,9 @@ namespace SpineEditor.UI
         private Vector2 _spinePosition;
         private float _spineScale;
         private MouseState _prevMouseState;
+
+        // 旋转操作相关
+        private const float ROTATION_HANDLE_DISTANCE = 40.0f; // 旋转控制点距离形状中心的距离
 
         // 拖拽操作的灵敏度和判定范围
         private const int DRAG_HANDLE_SIZE = 8;
@@ -160,6 +168,26 @@ namespace SpineEditor.UI
                         // 直接设置形状位置为鼠标位置
                         _currentShape.X = spineMousePosition.X;
                         _currentShape.Y = spineMousePosition.Y;
+                        break;
+
+                    case DragOperationType.Rotate:
+                        {
+                            // 计算旋转角度
+                            // 获取形状中心点
+                            Vector2 center = new Vector2(_currentShape.X, _currentShape.Y);
+
+                            // 计算从中心点到鼠标的向量
+                            Vector2 toMouse = spineMousePosition - center;
+
+                            // 计算角度（弧度）
+                            float angle = (float)Math.Atan2(toMouse.Y, toMouse.X);
+
+                            // 转换为角度并调整为0-360范围
+                            float degrees = MathHelper.ToDegrees(angle);
+
+                            // 设置形状的旋转角度
+                            _currentShape.Rotation = degrees;
+                        }
                         break;
 
                     case DragOperationType.ResizeRight:
@@ -304,6 +332,16 @@ namespace SpineEditor.UI
                 (int)shapeWidth,
                 (int)shapeHeight
             );
+
+            // 检查是否在旋转控制点上
+            // 计算旋转控制点位置（在形状上方）
+            Vector2 rotateHandlePosition = new Vector2(
+                shapePosition.X,
+                shapePosition.Y - shapeHeight / 2 - ROTATION_HANDLE_DISTANCE * _spineScale
+            );
+
+            if (IsNearPoint(position, rotateHandlePosition, DRAG_HANDLE_SIZE))
+                return DragOperationType.Rotate;
 
             // 检查是否在调整大小的控制点上
             // 左上角

@@ -275,6 +275,19 @@ namespace SpineEditor.UI
             {
                 DrawSquareHandle(corners[i], handleSize, color);
             }
+
+            // 绘制旋转控制点（在形状上方）
+            Vector2 rotateHandle = new Vector2(0, -halfSize.Y - 40.0f);
+
+            // 应用旋转
+            float rotateX = rotateHandle.X;
+            float rotateY = rotateHandle.Y;
+            rotateHandle.X = rotateX * (float)Math.Cos(radians) - rotateY * (float)Math.Sin(radians);
+            rotateHandle.Y = rotateX * (float)Math.Sin(radians) + rotateY * (float)Math.Cos(radians);
+            rotateHandle += center;
+
+            // 绘制旋转控制点
+            DrawSquareHandle(rotateHandle, handleSize, Color.Green);
         }
 
         /// <summary>
