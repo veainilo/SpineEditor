@@ -35,6 +35,9 @@ namespace SpineEditor.Events
         // UI 元素
         private LeftPanel _leftPanel;
 
+        // Toast提示
+        private Toast _toast;
+
         /// <summary>
         /// 创建 Spine 帧事件编辑器游戏
         /// </summary>
@@ -83,6 +86,10 @@ namespace SpineEditor.Events
                 // 创建攻击形状渲染器
                 _attackShapeRenderer = new AttackShapeRenderer(GraphicsDevice);
                 Console.WriteLine("创建攻击形状渲染器成功");
+
+                // 创建Toast提示
+                _toast = new Toast(GraphicsDevice, _font);
+                Console.WriteLine("创建Toast提示成功");
 
                 // 创建 Spine 事件编辑器
                 _eventEditor = new SpineEventEditor(GraphicsDevice);
@@ -251,6 +258,9 @@ namespace SpineEditor.Events
                 _isSavingEvents = false;
             }
 
+            // 更新Toast提示
+            _toast.Update(gameTime);
+
             // 获取鼠标状态
             MouseState mouseState = Mouse.GetState();
 
@@ -344,6 +354,11 @@ namespace SpineEditor.Events
                 _eventEditor.Events.Count,
                 _eventEditor.Scale
             );
+
+            // 绘制Toast提示（最后绘制，确保在最上层）
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, null, null, null);
+            _toast.Draw(_spriteBatch);
+            _spriteBatch.End();
 
             base.Draw(gameTime);
         }
@@ -503,7 +518,7 @@ namespace SpineEditor.Events
                     Console.WriteLine($"已保存事件数据到: {_currentFilePath}");
 
                     // 显示保存成功提示
-                    // TODO: 添加UI提示
+                    _toast.Show($"已保存事件数据到: {Path.GetFileName(_currentFilePath)}", 2.0f, 0.3f, 0.5f);
                 }
             }
         }
