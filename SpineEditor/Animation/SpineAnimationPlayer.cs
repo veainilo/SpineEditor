@@ -52,7 +52,7 @@ namespace SpineEditor.Animation
                 if (_skeleton != null)
                 {
                     _skeleton.ScaleX = _scale;
-                    _skeleton.ScaleY = _scale;
+                    _skeleton.ScaleY = _scale; // 使用正值
                 }
             }
         }
@@ -177,7 +177,7 @@ namespace SpineEditor.Animation
                 _skeleton = new Skeleton(skeletonData);
                 _scale = scale;
                 _skeleton.ScaleX = _scale;
-                _skeleton.ScaleY = -_scale; // 使用负值，反转Y轴方向
+                _skeleton.ScaleY = _scale; // 使用正值
 
                 // 设置位置
                 _position = position ?? new Vector2(_graphicsDevice.Viewport.Width / 2, _graphicsDevice.Viewport.Height / 2);
@@ -292,7 +292,7 @@ namespace SpineEditor.Animation
                 // 设置投影矩阵
                 ((BasicEffect)_skeletonRenderer.Effect).Projection = Matrix.CreateOrthographicOffCenter(
                     0, _graphicsDevice.Viewport.Width,
-                    0, _graphicsDevice.Viewport.Height,  // 修改Y轴方向，使其从下到上增长
+                    _graphicsDevice.Viewport.Height, 0,  // Y轴从上到下增长，与Bone.yDown=true匹配
                     1, 0);
 
                 // 渲染骨架
