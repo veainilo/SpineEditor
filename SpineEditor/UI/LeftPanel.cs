@@ -22,6 +22,7 @@ namespace SpineEditor.UI
         // 面板内的控件
         private Button _playPauseButton;
         private Button _resetButton;
+        private Button _saveButton;
         private TextBox _speedTextBox;
         private AnimationListBox _animationList;
 
@@ -40,6 +41,7 @@ namespace SpineEditor.UI
         // 事件
         public event EventHandler PlayPauseClicked;
         public event EventHandler ResetClicked;
+        public event EventHandler SaveClicked;
         public event EventHandler<string> SpeedChanged;
         public event EventHandler<string> AnimationSelected;
 
@@ -136,6 +138,11 @@ namespace SpineEditor.UI
                 new Rectangle(startX, startY, buttonWidth, buttonHeight));
             startY += buttonHeight + buttonSpacing;
 
+            // 创建保存按钮
+            _saveButton = new Button(_graphicsDevice, "Save",
+                new Rectangle(startX, startY, buttonWidth, buttonHeight));
+            startY += buttonHeight + buttonSpacing;
+
             // 创建速度文本框 - 左侧标签，右侧输入框
             _speedTextBox = new TextBox(_graphicsDevice, "Speed", "1.0",
                 new Rectangle(startX, startY, buttonWidth, buttonHeight));
@@ -147,6 +154,7 @@ namespace SpineEditor.UI
             // 设置事件处理
             _playPauseButton.Click += (sender, e) => PlayPauseClicked?.Invoke(this, EventArgs.Empty);
             _resetButton.Click += (sender, e) => ResetClicked?.Invoke(this, EventArgs.Empty);
+            _saveButton.Click += (sender, e) => SaveClicked?.Invoke(this, EventArgs.Empty);
             _speedTextBox.TextChanged += (sender, e) => SpeedChanged?.Invoke(this, _speedTextBox.Text);
             _animationList.SelectedIndexChanged += (sender, e) =>
             {
@@ -172,6 +180,7 @@ namespace SpineEditor.UI
             // 更新控件
             _playPauseButton.Update();
             _resetButton.Update();
+            _saveButton.Update();
             _speedTextBox.Update(gameTime);
             _animationList.Update();
 
@@ -295,6 +304,15 @@ namespace SpineEditor.UI
             _resetButton.Draw(spriteBatch, _font);
 
             controlY += _resetButton.Bounds.Height + controlSpacing;
+
+            _saveButton.Bounds = new Rectangle(
+                _controlArea.X + (_controlArea.Width - _saveButton.Bounds.Width) / 2,
+                controlY,
+                _saveButton.Bounds.Width,
+                _saveButton.Bounds.Height);
+            _saveButton.Draw(spriteBatch, _font);
+
+            controlY += _saveButton.Bounds.Height + controlSpacing;
 
             _speedTextBox.Bounds = new Rectangle(
                 _controlArea.X + (_controlArea.Width - _speedTextBox.Bounds.Width) / 2,

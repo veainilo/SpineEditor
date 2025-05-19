@@ -1,5 +1,33 @@
 {
   "Animations": {
-    "Attack1": []
+    "Attack1": [
+      {
+        "Name": "New Event",
+        "Time": 0.6692708,
+        "Frame": 20,
+        "EventType": 0,
+        "Attack": null,
+        "Effect": null,
+        "Sound": null
+      },
+      {
+        "Name": "New Event",
+        "Time": 0.6692708,
+        "Frame": 20,
+        "EventType": 0,
+        "Attack": null,
+        "Effect": null,
+        "Sound": null
+      },
+      {
+        "Name": "New Event",
+        "Time": 0.6692708,
+        "Frame": 20,
+        "EventType": 0,
+        "Attack": null,
+        "Effect": null,
+        "Sound": null
+      }
+    ]
   }
 }

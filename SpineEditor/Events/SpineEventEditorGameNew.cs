@@ -28,10 +28,12 @@ namespace SpineEditor.Events
         // 攻击形状渲染器
         private AttackShapeRenderer _attackShapeRenderer;
 
+        // 保存事件相关
+        private bool _isSavingEvents = false;
+        private string _currentFilePath = "events.json";
+
         // UI 元素
         private LeftPanel _leftPanel;
-
-        private string _currentFilePath = "events.json";
 
         /// <summary>
         /// 创建 Spine 帧事件编辑器游戏
@@ -173,6 +175,11 @@ namespace SpineEditor.Events
                 _timelineControl.CurrentTime = 0;
             };
 
+            // 设置保存按钮事件
+            _leftPanel.SaveClicked += (sender, e) => {
+                SaveEvents();
+            };
+
             // 设置速度变更事件
             _leftPanel.SpeedChanged += (sender, speedText) => {
                 if (float.TryParse(speedText, out float speed))
@@ -227,6 +234,22 @@ namespace SpineEditor.Events
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+
+            // 检测Ctrl+S快捷键保存帧事件
+            KeyboardState keyboardState = Keyboard.GetState();
+            if (keyboardState.IsKeyDown(Keys.LeftControl) && keyboardState.IsKeyDown(Keys.S))
+            {
+                // 防止连续触发，使用简单的防抖
+                if (!_isSavingEvents)
+                {
+                    _isSavingEvents = true;
+                    SaveEvents();
+                }
+            }
+            else
+            {
+                _isSavingEvents = false;
+            }
 
             // 获取鼠标状态
             MouseState mouseState = Mouse.GetState();
@@ -462,6 +485,25 @@ namespace SpineEditor.Events
                 else
                 {
                     Console.WriteLine($"加载Spine动画失败: {atlasPath}, {skelPath}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// 保存事件数据
+        /// </summary>
+        private void SaveEvents()
+        {
+            if (_eventEditor != null && !string.IsNullOrEmpty(_currentFilePath))
+            {
+                string animationName = _eventEditor.CurrentAnimation;
+                if (!string.IsNullOrEmpty(animationName))
+                {
+                    _eventEditor.SaveEventsToJson(_currentFilePath, animationName);
+                    Console.WriteLine($"已保存事件数据到: {_currentFilePath}");
+
+                    // 显示保存成功提示
+                    // TODO: 添加UI提示
                 }
             }
         }
