@@ -177,7 +177,7 @@ namespace SpineEditor.Animation
                 _skeleton = new Skeleton(skeletonData);
                 _scale = scale;
                 _skeleton.ScaleX = _scale;
-                _skeleton.ScaleY = _scale;
+                _skeleton.ScaleY = -_scale; // 使用负值，反转Y轴方向
 
                 // 设置位置
                 _position = position ?? new Vector2(_graphicsDevice.Viewport.Width / 2, _graphicsDevice.Viewport.Height / 2);

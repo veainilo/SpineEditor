@@ -81,7 +81,7 @@ namespace Spine {
 			rasterizerState = new RasterizerState();
 			rasterizerState.CullMode = CullMode.None;
 
-			Bone.yDown = false; // 修改为false，使Y轴从下到上增长
+			Bone.yDown = true; // 恢复默认设置
 		}
 
 		public void Begin () {
