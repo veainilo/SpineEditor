@@ -169,9 +169,15 @@ namespace SpineEditor.Events
             // 保存当前动画的事件数据
             if (saveEvents && !string.IsNullOrEmpty(CurrentAnimation))
             {
-                string eventFilePath = $"{CurrentAnimation}_events.json";
-                SaveEventsToJson(eventFilePath, CurrentAnimation);
-                Console.WriteLine($"已保存当前动画 {CurrentAnimation} 的事件数据到 {eventFilePath}");
+                string currentEventFilePath = Path.GetDirectoryName(_skeletonDataFilePath);
+                if (!string.IsNullOrEmpty(currentEventFilePath))
+                {
+                    string fileName = Path.GetFileNameWithoutExtension(_skeletonDataFilePath);
+                    string eventFilePath = Path.Combine(currentEventFilePath, fileName + "_events.json");
+
+                    SaveEventsToJson(eventFilePath, CurrentAnimation);
+                    Console.WriteLine($"已保存当前动画 {CurrentAnimation} 的事件数据到 {eventFilePath}");
+                }
             }
 
             // 播放新动画
@@ -193,9 +199,23 @@ namespace SpineEditor.Events
             // 加载新动画的事件数据
             if (loadEvents)
             {
-                string eventFilePath = $"{animationName}_events.json";
-                bool loadSuccess = LoadEventsFromJson(eventFilePath);
-                Console.WriteLine($"加载动画 {animationName} 的事件数据{(loadSuccess ? "成功" : "失败")}");
+                // 尝试从当前设置的事件文件路径加载
+                string currentEventFilePath = Path.GetDirectoryName(_skeletonDataFilePath);
+                if (!string.IsNullOrEmpty(currentEventFilePath))
+                {
+                    string fileName = Path.GetFileNameWithoutExtension(_skeletonDataFilePath);
+                    string eventFilePath = Path.Combine(currentEventFilePath, fileName + "_events.json");
+
+                    if (File.Exists(eventFilePath))
+                    {
+                        bool loadSuccess = LoadEventsFromJson(eventFilePath);
+                        Console.WriteLine($"从文件 {eventFilePath} 加载动画 {animationName} 的事件数据{(loadSuccess ? "成功" : "失败")}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"事件文件不存在: {eventFilePath}");
+                    }
+                }
             }
 
             Console.WriteLine($"动画切换完成：{animationName}，持续时间：{AnimationDuration}秒");
