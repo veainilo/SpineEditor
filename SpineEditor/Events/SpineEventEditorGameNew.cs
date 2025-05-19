@@ -237,6 +237,9 @@ namespace SpineEditor.Events
                     }
                 }
             };
+
+            // 初始化完成后立即更新UI布局，确保所有元素位置正确
+            UpdateUILayout();
         }
 
         /// <summary>
@@ -501,6 +504,9 @@ namespace SpineEditor.Events
                         {
                             _timelineControl.AddEvent(evt);
                         }
+
+                        // 加载新动画后更新UI布局，确保所有元素位置正确
+                        UpdateUILayout();
                     }
                 }
                 else
