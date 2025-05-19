@@ -65,6 +65,45 @@ namespace SpineEditor.UI
         public Rectangle Bounds => _bounds;
 
         /// <summary>
+        /// 设置面板的边界并更新内部控件位置
+        /// </summary>
+        /// <param name="bounds">新的边界</param>
+        public void SetBounds(Rectangle bounds)
+        {
+            _bounds = bounds;
+
+            // 重新计算各区域的位置和大小
+            int padding = 10;
+            int sectionSpacing = 15;
+            int infoHeight = 120;
+            int controlHeight = 140;
+
+            // 信息区域 - 顶部
+            _infoArea = new Rectangle(
+                bounds.X + padding,
+                bounds.Y + padding + 20,
+                bounds.Width - padding * 2,
+                infoHeight);
+
+            // 控制区域 - 中间
+            _controlArea = new Rectangle(
+                bounds.X + padding,
+                _infoArea.Y + _infoArea.Height + sectionSpacing,
+                bounds.Width - padding * 2,
+                controlHeight);
+
+            // 动画列表区域 - 底部，占据剩余空间
+            _animationArea = new Rectangle(
+                bounds.X + padding,
+                _controlArea.Y + _controlArea.Height + sectionSpacing,
+                bounds.Width - padding * 2,
+                bounds.Height - _infoArea.Height - controlHeight - sectionSpacing * 3 - padding * 2 - 20);
+
+            // 更新动画列表的边界
+            _animationList.SetBounds(_animationArea);
+        }
+
+        /// <summary>
         /// 创建左侧面板
         /// </summary>
         /// <param name="graphicsDevice">图形设备</param>

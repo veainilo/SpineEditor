@@ -87,6 +87,16 @@ namespace SpineEditor.UI
         public Rectangle Bounds => _bounds;
 
         /// <summary>
+        /// 设置控件的边界
+        /// </summary>
+        /// <param name="bounds">新的边界</param>
+        public void SetBounds(Rectangle bounds)
+        {
+            _bounds = bounds;
+            _maxVisibleItems = Math.Max(1, bounds.Height / 30); // 更新可见项目数量
+        }
+
+        /// <summary>
         /// 创建动画列表框
         /// </summary>
         /// <param name="graphicsDevice">图形设备</param>

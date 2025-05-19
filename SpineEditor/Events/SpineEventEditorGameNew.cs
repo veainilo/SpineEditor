@@ -51,6 +51,12 @@ namespace SpineEditor.Events
             _graphics.PreferredBackBufferWidth = 1280;
             _graphics.PreferredBackBufferHeight = 720;
 
+            // 允许调整窗口大小
+            Window.AllowUserResizing = true;
+
+            // 订阅窗口大小变化事件
+            Window.ClientSizeChanged += Window_ClientSizeChanged;
+
             // 订阅文件拖放事件
             Window.FileDrop += Window_FileDrop;
         }
@@ -521,6 +527,34 @@ namespace SpineEditor.Events
                     _toast.Show($"已保存事件数据到: {Path.GetFileName(_currentFilePath)}", 2.0f, 0.3f, 0.5f);
                 }
             }
+        }
+
+        /// <summary>
+        /// 窗口大小变化事件处理
+        /// </summary>
+        private void Window_ClientSizeChanged(object sender, EventArgs e)
+        {
+            // 更新UI元素的位置和大小
+            UpdateUILayout();
+        }
+
+        /// <summary>
+        /// 更新UI布局以适应窗口大小
+        /// </summary>
+        private void UpdateUILayout()
+        {
+            // 更新时间轴控件的位置和大小
+            _timelineControl.SetBounds(new Rectangle(0, GraphicsDevice.Viewport.Height - 200, GraphicsDevice.Viewport.Width, 200));
+
+            // 更新属性面板的位置和大小
+            _propertyPanel.SetBounds(new Rectangle(GraphicsDevice.Viewport.Width - 300, 0, 300, GraphicsDevice.Viewport.Height - 200));
+
+            // 更新左侧面板的位置和大小
+            int leftPanelWidth = 280;
+            _leftPanel.SetBounds(new Rectangle(0, 0, leftPanelWidth, GraphicsDevice.Viewport.Height - 200));
+
+            // 更新Spine动画的位置
+            _eventEditor.Position = new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height / 2);
         }
 
         /// <summary>

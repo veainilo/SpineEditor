@@ -27,6 +27,75 @@ namespace SpineEditor.UI
         /// </summary>
         public Rectangle Bounds => _bounds;
 
+        /// <summary>
+        /// 设置面板的边界并更新内部控件位置
+        /// </summary>
+        /// <param name="bounds">新的边界</param>
+        public void SetBounds(Rectangle bounds)
+        {
+            _bounds = bounds;
+
+            // 更新通用 UI 元素的位置
+            int y = _bounds.Y + 40;
+
+            // 添加事件按钮和删除按钮并排放置
+            int buttonWidth = 120;
+            int buttonSpacing = 10;
+            _addEventButton.Bounds = new Rectangle(_bounds.X + 10, y, buttonWidth, 30);
+            _deleteButton.Bounds = new Rectangle(_bounds.X + buttonWidth + buttonSpacing + 10, y, buttonWidth, 30);
+
+            y += 40;
+            _nameTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+            y += 60;
+            _timeTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+            y += 60;
+            _eventTypeDropdown.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+            y += 60;
+
+            // 更新普通事件 UI 元素的位置
+            _intValueTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+            y += 60;
+            _floatValueTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+            y += 60;
+            _stringValueTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+
+            // 更新攻击事件 UI 元素的位置
+            y = _bounds.Y + 220; // 重置 y 坐标
+            _attackTypeTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+            y += 60;
+            _attackDamageTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+            y += 60;
+            _shapeTypeDropdown.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+            y += 60;
+            _shapeXTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+            y += 60;
+            _shapeYTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+            y += 60;
+            _shapeWidthTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+            y += 60;
+            _shapeHeightTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+            y += 60;
+            _shapeRotationTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+
+            // 更新特效事件 UI 元素的位置
+            y = _bounds.Y + 220; // 重置 y 坐标
+            _effectNameTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+            y += 60;
+            _effectXTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+            y += 60;
+            _effectYTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+            y += 60;
+            _effectScaleTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+
+            // 更新声音事件 UI 元素的位置
+            y = _bounds.Y + 220; // 重置 y 坐标
+            _soundNameTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+            y += 60;
+            _soundVolumeTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+            y += 60;
+            _soundPitchTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
+        }
+
         // 通用 UI 元素
         private Button _deleteButton;
         private TextBox _nameTextBox;
@@ -687,13 +756,10 @@ namespace SpineEditor.UI
         }
 
         /// <summary>
-        /// 设置面板的边界
+        /// 更新控件位置
         /// </summary>
-        /// <param name="bounds">边界矩形</param>
-        public void SetBounds(Rectangle bounds)
+        private void UpdateControlPositions()
         {
-            _bounds = bounds;
-
             // 更新通用 UI 元素的位置
             int y = _bounds.Y + 40;
 
