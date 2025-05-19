@@ -280,7 +280,8 @@ namespace SpineEditor.Events
         // 静态 JSON 序列化选项
         private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
         {
-            WriteIndented = true
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
         /// <summary>
@@ -378,7 +379,11 @@ namespace SpineEditor.Events
                 };
             }
 
-            string json = JsonSerializer.Serialize(this, _jsonOptions);
+            // 转换为小写风格的数据结构
+            var lowercaseData = LowercaseEventData.FromAnimationEventData(this);
+
+            // 序列化为JSON
+            string json = JsonSerializer.Serialize(lowercaseData, _jsonOptions);
             File.WriteAllText(filePath, json);
         }
 
@@ -395,18 +400,99 @@ namespace SpineEditor.Events
             try
             {
                 string json = File.ReadAllText(filePath);
-                var data = JsonSerializer.Deserialize<AnimationEventData>(json);
+
+                // 尝试先按小写风格反序列化
+                try
+                {
+                    var lowercaseData = JsonSerializer.Deserialize<LowercaseEventData>(json);
+                    if (lowercaseData != null && lowercaseData.Animations != null)
+                    {
+                        // 转换回标准格式
+                        var data = new AnimationEventData();
+
+                        foreach (var animPair in lowercaseData.Animations)
+                        {
+                            var events = new List<FrameEvent>();
+                            foreach (var lcEvent in animPair.Value)
+                            {
+                                var evt = new FrameEvent(lcEvent.Name, lcEvent.Time, (EventType)lcEvent.Type);
+                                evt.Frame = lcEvent.Frame;
+
+                                // 根据事件类型设置相应的数据
+                                switch ((EventType)lcEvent.Type)
+                                {
+                                    case EventType.Attack:
+                                        if (lcEvent.Attack != null)
+                                        {
+                                            evt.Attack = new AttackData
+                                            {
+                                                Type = lcEvent.Attack.Type,
+                                                Damage = lcEvent.Attack.Damage,
+                                                Shape = lcEvent.Attack.Shape != null ? new AttackShape
+                                                {
+                                                    Type = (ShapeType)lcEvent.Attack.Shape.Type,
+                                                    X = lcEvent.Attack.Shape.X,
+                                                    Y = lcEvent.Attack.Shape.Y,
+                                                    Width = lcEvent.Attack.Shape.Width,
+                                                    Height = lcEvent.Attack.Shape.Height,
+                                                    Rotation = lcEvent.Attack.Shape.Rotation
+                                                } : null
+                                            };
+                                        }
+                                        break;
+                                    case EventType.Effect:
+                                        if (lcEvent.Effect != null)
+                                        {
+                                            evt.Effect = new EffectData
+                                            {
+                                                Name = lcEvent.Effect.Name,
+                                                X = lcEvent.Effect.X,
+                                                Y = lcEvent.Effect.Y,
+                                                Scale = lcEvent.Effect.Scale
+                                            };
+                                        }
+                                        break;
+                                    case EventType.Sound:
+                                        if (lcEvent.Sound != null)
+                                        {
+                                            evt.Sound = new SoundData
+                                            {
+                                                Name = lcEvent.Sound.Name,
+                                                Volume = lcEvent.Sound.Volume,
+                                                Pitch = lcEvent.Sound.Pitch
+                                            };
+                                        }
+                                        break;
+                                }
+
+                                events.Add(evt);
+                            }
+
+                            data.SetEventsForAnimation(animPair.Key, events);
+                        }
+
+                        return data;
+                    }
+                }
+                catch
+                {
+                    // 如果小写风格反序列化失败，尝试标准格式
+                    Console.WriteLine("小写风格反序列化失败，尝试标准格式");
+                }
+
+                // 尝试标准格式反序列化
+                var standardData = JsonSerializer.Deserialize<AnimationEventData>(json);
 
                 // 如果 Animations 为空，但 Events 不为空，说明是旧版本数据
-                if ((data.Animations == null || data.Animations.Count == 0) && data.Events != null && data.Events.Count > 0)
+                if ((standardData.Animations == null || standardData.Animations.Count == 0) && standardData.Events != null && standardData.Events.Count > 0)
                 {
-                    data.Animations = new Dictionary<string, List<FrameEvent>>
+                    standardData.Animations = new Dictionary<string, List<FrameEvent>>
                     {
-                        { data.AnimationName, data.Events }
+                        { standardData.AnimationName, standardData.Events }
                     };
                 }
 
-                return data;
+                return standardData;
             }
             catch (Exception ex)
             {
