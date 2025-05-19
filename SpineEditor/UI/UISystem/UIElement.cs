@@ -55,7 +55,7 @@ namespace SpineEditor.UI.UISystem
         }
 
         // 添加子元素
-        public void AddChild(UIElement child)
+        public virtual void AddChild(UIElement child)
         {
             if (child.Parent != null)
                 child.Parent.Children.Remove(child);
@@ -68,7 +68,7 @@ namespace SpineEditor.UI.UISystem
         }
 
         // 移除子元素
-        public void RemoveChild(UIElement child)
+        public virtual void RemoveChild(UIElement child)
         {
             if (Children.Contains(child))
             {

@@ -16,11 +16,19 @@ namespace SpineEditor.UI.UISystem
         // 鼠标状态
         private MouseState _prevMouseState;
 
+        // 图形设备
+        public GraphicsDevice GraphicsDevice { get; private set; }
+
         public UIManager()
         {
             // 创建根元素
             _root = new RootElement();
             _prevMouseState = Mouse.GetState();
+        }
+
+        public UIManager(GraphicsDevice graphicsDevice) : this()
+        {
+            GraphicsDevice = graphicsDevice;
         }
 
         // 添加UI元素到根元素
