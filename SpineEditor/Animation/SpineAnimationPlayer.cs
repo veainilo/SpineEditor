@@ -114,7 +114,7 @@ namespace SpineEditor.Animation
                 // 设置基本效果的投影矩阵
                 BasicEffect effect = (BasicEffect)_skeletonRenderer.Effect;
                 effect.World = Matrix.Identity;
-                effect.View = Matrix.CreateLookAt(new Vector3(0.0f, 0.0f, 1.0f), Vector3.Zero, -Vector3.Up); // 使用-Vector3.Up，使上方向是y轴负方向
+                effect.View = Matrix.CreateLookAt(new Vector3(0.0f, 0.0f, 1.0f), Vector3.Zero, Vector3.Up); // 恢复原始设置
                 effect.TextureEnabled = true;
                 effect.VertexColorEnabled = true;
             }
@@ -177,7 +177,7 @@ namespace SpineEditor.Animation
                 _skeleton = new Skeleton(skeletonData);
                 _scale = scale;
                 _skeleton.ScaleX = _scale;
-                _skeleton.ScaleY = _scale; // 使用正值，与Bone.yDown=true匹配
+                _skeleton.ScaleY = -_scale; // 使用负值，反转Y轴方向
 
                 // 设置位置
                 _position = position ?? new Vector2(_graphicsDevice.Viewport.Width / 2, _graphicsDevice.Viewport.Height / 2);
@@ -292,7 +292,7 @@ namespace SpineEditor.Animation
                 // 设置投影矩阵
                 ((BasicEffect)_skeletonRenderer.Effect).Projection = Matrix.CreateOrthographicOffCenter(
                     0, _graphicsDevice.Viewport.Width,
-                    _graphicsDevice.Viewport.Height, 0,  // 保持Y轴从上到下增长
+                    0, _graphicsDevice.Viewport.Height,  // 修改Y轴方向，使其从下到上增长
                     1, 0);
 
                 // 渲染骨架
