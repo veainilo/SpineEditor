@@ -17,12 +17,12 @@ namespace SpineEditor.UI.UISystem
         private float _cursorBlinkTime;
         private bool _showCursor;
         private KeyboardState _prevKeyboardState;
-        
+
         /// <summary>
         /// 文本变更事件
         /// </summary>
         public event EventHandler TextChanged;
-        
+
         /// <summary>
         /// 获取或设置文本
         /// </summary>
@@ -38,7 +38,7 @@ namespace SpineEditor.UI.UISystem
                 }
             }
         }
-        
+
         /// <summary>
         /// 获取或设置标签
         /// </summary>
@@ -47,7 +47,7 @@ namespace SpineEditor.UI.UISystem
             get => _label;
             set => _label = value;
         }
-        
+
         /// <summary>
         /// 获取或设置字体
         /// </summary>
@@ -56,7 +56,7 @@ namespace SpineEditor.UI.UISystem
             get => _font;
             set => _font = value;
         }
-        
+
         /// <summary>
         /// 创建UI文本框
         /// </summary>
@@ -65,13 +65,32 @@ namespace SpineEditor.UI.UISystem
         /// <param name="font">字体</param>
         public UITextBox(string label, string text, SpriteFont font)
         {
-            _label = label;
-            _text = text;
+            _label = label ?? string.Empty; // 确保标签不为null
+            _text = text ?? string.Empty; // 确保文本不为null
             _font = font;
-            Bounds = new Rectangle(0, 0, 200, 30);
+
+            // 根据文本大小设置初始边界
+            if (font != null && !string.IsNullOrEmpty(_text))
+            {
+                try
+                {
+                    Vector2 size = font.MeasureString(_text);
+                    Bounds = new Rectangle(0, 0, Math.Max(200, (int)size.X + 20), (int)size.Y + 10);
+                }
+                catch
+                {
+                    // 如果测量文本大小失败，使用默认大小
+                    Bounds = new Rectangle(0, 0, 200, 30);
+                }
+            }
+            else
+            {
+                Bounds = new Rectangle(0, 0, 200, 30);
+            }
+
             _prevKeyboardState = Keyboard.GetState();
         }
-        
+
         protected override bool OnMouseInput(MouseState mouseState, MouseState prevMouseState)
         {
             if (mouseState.LeftButton == ButtonState.Released && prevMouseState.LeftButton == ButtonState.Pressed)
@@ -79,10 +98,10 @@ namespace SpineEditor.UI.UISystem
                 _isSelected = true;
                 return true;
             }
-            
+
             return false;
         }
-        
+
         protected override void OnUpdate(GameTime gameTime)
         {
             // 如果选中，处理键盘输入
@@ -95,22 +114,22 @@ namespace SpineEditor.UI.UISystem
                     _cursorBlinkTime = 0;
                     _showCursor = !_showCursor;
                 }
-                
+
                 // 处理键盘输入
                 KeyboardState keyboardState = Keyboard.GetState();
-                
+
                 // 处理退格键
                 if (keyboardState.IsKeyDown(Keys.Back) && !_prevKeyboardState.IsKeyDown(Keys.Back) && _text.Length > 0)
                 {
                     Text = _text.Substring(0, _text.Length - 1);
                 }
-                
+
                 // 处理回车键
                 if (keyboardState.IsKeyDown(Keys.Enter) && !_prevKeyboardState.IsKeyDown(Keys.Enter))
                 {
                     _isSelected = false;
                 }
-                
+
                 // 处理字符输入
                 foreach (Keys key in keyboardState.GetPressedKeys())
                 {
@@ -123,7 +142,7 @@ namespace SpineEditor.UI.UISystem
                         }
                     }
                 }
-                
+
                 _prevKeyboardState = keyboardState;
             }
             else
@@ -132,47 +151,66 @@ namespace SpineEditor.UI.UISystem
                 _cursorBlinkTime = 0;
             }
         }
-        
+
         protected override void OnDraw(SpriteBatch spriteBatch)
         {
             // 绘制标签
             if (!string.IsNullOrEmpty(_label) && _font != null)
             {
-                Vector2 labelSize = _font.MeasureString(_label);
-                spriteBatch.DrawString(_font, _label, new Vector2(Bounds.X, Bounds.Y - labelSize.Y - 2), Color.White);
+                try
+                {
+                    Vector2 labelSize = _font.MeasureString(_label);
+                    spriteBatch.DrawString(_font, _label, new Vector2(Bounds.X, Bounds.Y - labelSize.Y - 2), Color.White);
+                }
+                catch (Exception ex)
+                {
+                    // 如果绘制标签时发生异常，记录错误
+                    Console.WriteLine($"绘制文本框标签时出错: {ex.Message}");
+                }
             }
-            
+
             // 绘制文本框背景
             Color backgroundColor = _isSelected ? new Color(60, 60, 70) : new Color(40, 40, 50);
             spriteBatch.Draw(TextureManager.Pixel, Bounds, backgroundColor);
-            
+
             // 绘制边框
             Color borderColor = _isSelected ? Color.Yellow : new Color(100, 100, 120);
             DrawBorder(spriteBatch, Bounds, borderColor, 1);
-            
+
             // 绘制文本
             if (_font != null)
             {
-                // 计算文本位置
-                Vector2 textPosition = new Vector2(Bounds.X + 5, Bounds.Y + (Bounds.Height - _font.MeasureString("A").Y) / 2);
-                
-                // 绘制文本
-                spriteBatch.DrawString(_font, _text, textPosition, Color.White);
-                
-                // 如果选中且显示光标，绘制光标
-                if (_isSelected && _showCursor)
+                try
                 {
-                    Vector2 cursorPosition = textPosition;
+                    // 计算文本位置
+                    Vector2 textPosition = new Vector2(Bounds.X + 5, Bounds.Y + (Bounds.Height - _font.MeasureString("A").Y) / 2);
+
+                    // 绘制文本
                     if (!string.IsNullOrEmpty(_text))
                     {
-                        cursorPosition.X += _font.MeasureString(_text).X;
+                        spriteBatch.DrawString(_font, _text, textPosition, Color.White);
                     }
-                    
-                    spriteBatch.Draw(TextureManager.Pixel, new Rectangle((int)cursorPosition.X, (int)cursorPosition.Y, 1, (int)_font.MeasureString("A").Y), Color.White);
+
+                    // 如果选中且显示光标，绘制光标
+                    if (_isSelected && _showCursor)
+                    {
+                        Vector2 cursorPosition = textPosition;
+                        if (!string.IsNullOrEmpty(_text))
+                        {
+                            cursorPosition.X += _font.MeasureString(_text).X;
+                        }
+
+                        spriteBatch.Draw(TextureManager.Pixel, new Rectangle((int)cursorPosition.X, (int)cursorPosition.Y, 1, (int)_font.MeasureString("A").Y), Color.White);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // 如果绘制文本时发生异常，记录错误
+                    Console.WriteLine($"绘制文本框时出错: {ex.Message}");
                 }
             }
         }
-        
+
         private void DrawBorder(SpriteBatch spriteBatch, Rectangle rectangle, Color color, int thickness)
         {
             // 上边框
@@ -184,7 +222,7 @@ namespace SpineEditor.UI.UISystem
             // 右边框
             spriteBatch.Draw(TextureManager.Pixel, new Rectangle(rectangle.X + rectangle.Width - thickness, rectangle.Y, thickness, rectangle.Height), color);
         }
-        
+
         private char? KeyToChar(Keys key, bool shift)
         {
             // 数字键
@@ -192,19 +230,19 @@ namespace SpineEditor.UI.UISystem
             {
                 return (char)('0' + (key - Keys.D0));
             }
-            
+
             // 字母键
             if (key >= Keys.A && key <= Keys.Z)
             {
                 return shift ? (char)('A' + (key - Keys.A)) : (char)('a' + (key - Keys.A));
             }
-            
+
             // 空格键
             if (key == Keys.Space)
             {
                 return ' ';
             }
-            
+
             // 其他特殊字符
             switch (key)
             {

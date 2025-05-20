@@ -1,5 +1,12 @@
-// 注释掉整个文件，因为它引用了尚未完成的GUILayout组件
-/*
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using SpineEditor.UI;
+using SpineEditor.UI.GUILayoutComponents;
+using SpineEditor.UI.UISystem;
+using System;
+using System.IO;
+using System.Text.Json;
 
 namespace SpineEditor.Events
 {
@@ -12,7 +19,7 @@ namespace SpineEditor.Events
         private SpriteBatch _spriteBatch;
 
         private SpineEventEditor _eventEditor;
-        private TimelineControlNew _timelineControl;
+        private TimelineControlGUI _timelineControl;
         private SpriteFont _font;
         private UIManager _uiManager;
 
@@ -22,6 +29,11 @@ namespace SpineEditor.Events
         // 保存事件相关
         private bool _isSavingEvents = false;
         private string _currentFilePath = "events.json";
+        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
 
         // GUILayout面板
         private LeftPanelGUI _leftPanel;
@@ -120,16 +132,14 @@ namespace SpineEditor.Events
                         GraphicsDevice.Viewport.Width - leftPanelWidth - 300,
                         GraphicsDevice.Viewport.Height - 200),
                     GraphicsDevice, _font);
+                _viewport.BackgroundColor = new Color(50, 50, 60); // 设置视口背景色
                 Console.WriteLine("创建 视口 成功");
 
                 // 创建新的时间轴控件
-                _timelineControl = new TimelineControlNew(GraphicsDevice, _font);
-                _timelineControl.SetBounds(new Rectangle(0, GraphicsDevice.Viewport.Height - 200,
-                    GraphicsDevice.Viewport.Width, 200));
+                _timelineControl = new TimelineControlGUI("时间轴",
+                    new Rectangle(0, GraphicsDevice.Viewport.Height - 200, GraphicsDevice.Viewport.Width, 200),
+                    GraphicsDevice, _font);
                 Console.WriteLine("创建 时间轴控件 成功");
-
-                // 添加到UI管理器
-                _uiManager.AddElement(_timelineControl);
 
                 // 设置事件处理
                 SetupEventHandlers();
@@ -155,12 +165,12 @@ namespace SpineEditor.Events
         private void SetupEventHandlers()
         {
             // 设置时间轴事件选择事件
-            _timelineControl.OnEventSelected += (sender, evt) => {
+            _timelineControl.EventSelected += (sender, evt) => {
                 _propertyPanel.SetSelectedEvent(evt);
             };
 
             // 设置时间轴时间变化事件
-            _timelineControl.OnTimeChanged += (sender, time) => {
+            _timelineControl.TimeChanged += (sender, time) => {
                 _eventEditor.CurrentTime = time;
             };
 
@@ -210,21 +220,25 @@ namespace SpineEditor.Events
                     _timelineControl.SetDuration(_eventEditor.AnimationDuration);
 
                     // 更新时间轴上的事件
-                    _timelineControl.GetEvents().Clear();
+                    _timelineControl.Events.Clear();
                     foreach (var evt in _eventEditor.Events)
                     {
-                        _timelineControl.AddEvent(evt);
+                        _timelineControl.AddEvent(evt.Name, evt.Time);
                     }
                 }
             };
 
             // 设置属性面板事件
             _propertyPanel.EventAdded += (sender, evt) => {
-                _timelineControl.AddEvent(evt);
+                _timelineControl.AddEvent(evt.Name, evt.Time);
             };
 
             _propertyPanel.EventDeleted += (sender, evt) => {
-                _timelineControl.RemoveEvent(evt);
+                int index = _timelineControl.Events.IndexOf(evt);
+                if (index >= 0)
+                {
+                    _timelineControl.RemoveEvent(index);
+                }
             };
         }
 
@@ -233,18 +247,81 @@ namespace SpineEditor.Events
         /// </summary>
         private void LoadDefaultAnimation()
         {
-            // 获取动画时长
-            if (_eventEditor.AnimationState != null && _eventEditor.AnimationNames.Length > 0)
+            try
             {
-                string animName = _eventEditor.AnimationNames[0];
-                _eventEditor.PlayAnimation(animName, true);
-                _eventEditor.IsPlaying = false; // 初始暂停
-                float duration = _eventEditor.AnimationDuration;
-                _timelineControl.SetDuration(duration);
-            }
+                // 加载默认的Spine动画数据
+                string contentDir = Path.Combine(Directory.GetCurrentDirectory(), "Content");
+                string atlasPath = Path.Combine(contentDir, "spineboy.atlas");
+                string skelPath = Path.Combine(contentDir, "spineboy.skel");
 
-            // 设置初始动画列表
-            _leftPanel.SetAnimations(_eventEditor.AnimationNames);
+                // 如果文件不存在，尝试使用相对路径
+                if (!File.Exists(atlasPath) || !File.Exists(skelPath))
+                {
+                    atlasPath = "Content/spineboy.atlas";
+                    skelPath = "Content/spineboy.skel";
+                }
+
+                // 检查文件是否存在
+                if (!File.Exists(atlasPath) || !File.Exists(skelPath))
+                {
+                    Console.WriteLine($"默认动画文件不存在: {atlasPath} 或 {skelPath}");
+                    _toast.Show("默认动画文件不存在，请拖放Spine动画文件到窗口", 5.0f);
+                    return;
+                }
+
+                Console.WriteLine($"加载默认动画: {atlasPath}, {skelPath}");
+
+                // 加载动画
+                bool success = _eventEditor.LoadAnimation(atlasPath, skelPath, 0.5f);
+                if (!success)
+                {
+                    Console.WriteLine("加载默认动画失败");
+                    _toast.Show("加载默认动画失败", 3.0f);
+                    return;
+                }
+
+                Console.WriteLine("加载默认动画成功");
+
+                // 获取动画时长
+                if (_eventEditor.AnimationState != null && _eventEditor.AnimationNames.Length > 0)
+                {
+                    string animName = _eventEditor.AnimationNames[0];
+                    _eventEditor.PlayAnimation(animName, true);
+                    _eventEditor.IsPlaying = false; // 初始暂停
+                    float duration = _eventEditor.AnimationDuration;
+                    _timelineControl.SetDuration(duration);
+
+                    Console.WriteLine($"播放动画: {animName}, 持续时间: {duration}秒");
+                }
+
+                // 设置初始动画列表
+                _leftPanel.SetAnimations(_eventEditor.AnimationNames);
+
+                // 设置当前文件路径
+                _currentFilePath = Path.ChangeExtension(skelPath, ".events.json");
+
+                // 尝试加载事件数据
+                string eventFilePath = Path.Combine(Path.GetDirectoryName(skelPath),
+                    Path.GetFileNameWithoutExtension(skelPath) + "_events.json");
+                if (File.Exists(eventFilePath))
+                {
+                    bool loadSuccess = _eventEditor.LoadEventsFromJson(eventFilePath);
+                    Console.WriteLine($"加载事件数据{(loadSuccess ? "成功" : "失败")}: {eventFilePath}");
+
+                    // 更新时间轴上的事件
+                    _timelineControl.Events.Clear();
+                    foreach (var evt in _eventEditor.Events)
+                    {
+                        _timelineControl.AddEvent(evt.Name, evt.Time);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"加载默认动画时出错: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                _toast.Show($"加载默认动画时出错: {ex.Message}", 5.0f);
+            }
         }
 
         /// <summary>
@@ -276,7 +353,8 @@ namespace SpineEditor.Events
             MouseState mouseState = Mouse.GetState();
 
             // 检查鼠标是否在时间轴控件范围内
-            bool isMouseOverTimeline = _timelineControl.Bounds.Contains(mouseState.Position);
+            bool isMouseOverTimeline = new Rectangle(0, GraphicsDevice.Viewport.Height - 200,
+                GraphicsDevice.Viewport.Width, 200).Contains(mouseState.Position);
 
             // 检查鼠标是否在左侧面板区域内
             bool isMouseOverLeftPanel = new Rectangle(0, 0, 280, GraphicsDevice.Viewport.Height - 200).Contains(mouseState.Position);
@@ -293,8 +371,11 @@ namespace SpineEditor.Events
             // 更新属性编辑面板
             _propertyPanel.Update(gameTime);
 
-            // 更新视口控件，只有当鼠标不在时间轴控件范围内且不在左侧面板区域内时才处理滚轮事件
+            // 更新视口控件，只有当鼠标不在时间轴控件范围内且不在左侧面板区域内且不在属性面板区域内时才处理滚轮事件
             _viewport.Update(gameTime, !isMouseOverTimeline && !isMouseOverLeftPanel && !isMouseOverPropertyPanel);
+
+            // 更新时间轴控件
+            _timelineControl.Update(gameTime);
 
             // 更新 Spine 动画
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalMilliseconds / 1000.0f;
@@ -317,14 +398,32 @@ namespace SpineEditor.Events
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            // 绘制 Spine 动画
-            _eventEditor.Draw();
+            // 绘制背景网格
+            DrawGrid();
 
-            // 绘制攻击形状
+            // 绘制 Spine 动画 - 注意：这里不直接调用Draw方法，而是在视口控件中绘制
+            // _eventEditor.Draw();
+
+            // 绘制攻击形状 - 在视口内绘制
             var selectedEvent = _timelineControl.SelectedEvent;
             if (selectedEvent != null && selectedEvent.EventType == EventType.Attack)
             {
-                _attackShapeRenderer.Draw(selectedEvent.Attack.Shape, _eventEditor.Position, _eventEditor.Scale);
+                // 保存当前视口状态
+                Rectangle originalViewport = GraphicsDevice.Viewport.Bounds;
+
+                try
+                {
+                    // 设置新的视口，限制绘制区域
+                    GraphicsDevice.Viewport = new Viewport(_viewport.Bounds);
+
+                    // 使用半透明红色，使形状更加明显
+                    _attackShapeRenderer.DrawAttackShape(selectedEvent.Attack.Shape, _eventEditor.Position, _eventEditor.Scale, Color.Red * 0.5f, true);
+                }
+                finally
+                {
+                    // 恢复原始视口
+                    GraphicsDevice.Viewport = new Viewport(originalViewport);
+                }
             }
 
             // 绘制UI管理器
@@ -340,6 +439,16 @@ namespace SpineEditor.Events
             // 绘制属性编辑面板
             _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
             _propertyPanel.Draw(_spriteBatch);
+            _spriteBatch.End();
+
+            // 绘制视口控件
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+            _viewport.Draw(_spriteBatch);
+            _spriteBatch.End();
+
+            // 绘制时间轴控件
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+            _timelineControl.Draw(_spriteBatch);
             _spriteBatch.End();
 
             // 更新左侧面板信息
@@ -377,12 +486,64 @@ namespace SpineEditor.Events
                 300, GraphicsDevice.Viewport.Height - 200));
 
             // 更新视口的位置和大小
-            _viewport.SetBounds(new Rectangle(leftPanelWidth, 0,
+            Rectangle viewportBounds = new Rectangle(leftPanelWidth, 0,
                 GraphicsDevice.Viewport.Width - leftPanelWidth - 300,
-                GraphicsDevice.Viewport.Height - 200));
+                GraphicsDevice.Viewport.Height - 200);
+            _viewport.SetBounds(viewportBounds);
 
-            // 更新Spine动画的位置
-            _eventEditor.Position = new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height / 2);
+            // 更新Spine动画的位置 - 设置为屏幕中心，而不是视口中心
+            // 这样在SpineViewportGUI中绘制时，动画会显示在视口中心
+            _eventEditor.Position = new Vector2(
+                GraphicsDevice.Viewport.Width / 2,
+                GraphicsDevice.Viewport.Height / 2);
+        }
+
+        /// <summary>
+        /// 绘制背景网格
+        /// </summary>
+        private void DrawGrid()
+        {
+            // 获取视口边界
+            Rectangle viewportBounds = _viewport.Bounds;
+
+            // 创建SpriteBatch
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+
+            // 绘制背景
+            _spriteBatch.Draw(TextureManager.Pixel, viewportBounds, new Color(30, 30, 40));
+
+            // 网格大小
+            int gridSize = 50;
+
+            // 绘制水平网格线
+            for (int y = viewportBounds.Y; y <= viewportBounds.Y + viewportBounds.Height; y += gridSize)
+            {
+                _spriteBatch.Draw(TextureManager.Pixel,
+                    new Rectangle(viewportBounds.X, y, viewportBounds.Width, 1),
+                    new Color(50, 50, 60, 100));
+            }
+
+            // 绘制垂直网格线
+            for (int x = viewportBounds.X; x <= viewportBounds.X + viewportBounds.Width; x += gridSize)
+            {
+                _spriteBatch.Draw(TextureManager.Pixel,
+                    new Rectangle(x, viewportBounds.Y, 1, viewportBounds.Height),
+                    new Color(50, 50, 60, 100));
+            }
+
+            // 绘制中心十字线
+            int centerX = viewportBounds.X + viewportBounds.Width / 2;
+            int centerY = viewportBounds.Y + viewportBounds.Height / 2;
+
+            _spriteBatch.Draw(TextureManager.Pixel,
+                new Rectangle(centerX, viewportBounds.Y, 1, viewportBounds.Height),
+                new Color(100, 100, 120, 150));
+
+            _spriteBatch.Draw(TextureManager.Pixel,
+                new Rectangle(viewportBounds.X, centerY, viewportBounds.Width, 1),
+                new Color(100, 100, 120, 150));
+
+            _spriteBatch.End();
         }
 
         /// <summary>
@@ -401,11 +562,7 @@ namespace SpineEditor.Events
                 }
 
                 // 序列化事件
-                string json = JsonSerializer.Serialize(_eventEditor.Events, new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                });
+                string json = JsonSerializer.Serialize(_eventEditor.Events, _jsonOptions);
 
                 // 保存到文件
                 File.WriteAllText(eventsFilePath, json);
@@ -421,4 +578,3 @@ namespace SpineEditor.Events
         }
     }
 }
-*/

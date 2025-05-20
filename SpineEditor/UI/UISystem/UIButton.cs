@@ -18,12 +18,12 @@ namespace SpineEditor.UI.UISystem
         private Color _hoverColor = new Color(80, 80, 100);
         private Color _pressedColor = new Color(40, 40, 50);
         private Color _textColor = Color.White;
-        
+
         /// <summary>
         /// 点击事件
         /// </summary>
         public event EventHandler Click;
-        
+
         /// <summary>
         /// 获取或设置按钮文本
         /// </summary>
@@ -32,7 +32,7 @@ namespace SpineEditor.UI.UISystem
             get => _text;
             set => _text = value;
         }
-        
+
         /// <summary>
         /// 获取或设置字体
         /// </summary>
@@ -41,7 +41,7 @@ namespace SpineEditor.UI.UISystem
             get => _font;
             set => _font = value;
         }
-        
+
         /// <summary>
         /// 创建UI按钮
         /// </summary>
@@ -49,15 +49,33 @@ namespace SpineEditor.UI.UISystem
         /// <param name="font">字体</param>
         public UIButton(string text, SpriteFont font)
         {
-            _text = text;
+            _text = text ?? string.Empty; // 确保文本不为null
             _font = font;
-            Bounds = new Rectangle(0, 0, 100, 30);
+
+            // 根据文本大小设置初始边界
+            if (font != null && !string.IsNullOrEmpty(_text))
+            {
+                try
+                {
+                    Vector2 size = font.MeasureString(_text);
+                    Bounds = new Rectangle(0, 0, (int)size.X + 20, (int)size.Y + 10);
+                }
+                catch
+                {
+                    // 如果测量文本大小失败，使用默认大小
+                    Bounds = new Rectangle(0, 0, 100, 30);
+                }
+            }
+            else
+            {
+                Bounds = new Rectangle(0, 0, 100, 30);
+            }
         }
-        
+
         protected override bool OnMouseInput(MouseState mouseState, MouseState prevMouseState)
         {
             _isHovered = true;
-            
+
             if (mouseState.LeftButton == ButtonState.Pressed)
             {
                 _isPressed = true;
@@ -71,10 +89,10 @@ namespace SpineEditor.UI.UISystem
                 }
                 _isPressed = false;
             }
-            
+
             return true; // 消费事件
         }
-        
+
         protected override void OnUpdate(GameTime gameTime)
         {
             // 如果鼠标不在按钮上，重置状态
@@ -82,10 +100,10 @@ namespace SpineEditor.UI.UISystem
             {
                 _isPressed = false;
             }
-            
+
             _isHovered = false; // 在下一帧重新检测
         }
-        
+
         protected override void OnDraw(SpriteBatch spriteBatch)
         {
             // 选择背景颜色
@@ -96,14 +114,14 @@ namespace SpineEditor.UI.UISystem
                 backgroundColor = _hoverColor;
             else
                 backgroundColor = _backgroundColor;
-            
+
             // 绘制背景
             spriteBatch.Draw(TextureManager.Pixel, Bounds, backgroundColor);
-            
+
             // 绘制边框
             Color borderColor = _isHovered ? Color.Yellow : new Color(100, 100, 120);
             DrawBorder(spriteBatch, Bounds, borderColor, 1);
-            
+
             // 绘制文本
             if (!string.IsNullOrEmpty(_text) && _font != null)
             {
@@ -112,11 +130,11 @@ namespace SpineEditor.UI.UISystem
                     Bounds.X + (Bounds.Width - textSize.X) / 2,
                     Bounds.Y + (Bounds.Height - textSize.Y) / 2
                 );
-                
+
                 spriteBatch.DrawString(_font, _text, textPosition, _textColor);
             }
         }
-        
+
         private void DrawBorder(SpriteBatch spriteBatch, Rectangle rectangle, Color color, int thickness)
         {
             // 上边框

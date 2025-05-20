@@ -11,7 +11,7 @@ namespace SpineEditor.UI.UISystem
         private string _text;
         private SpriteFont _font;
         private Color _textColor = Color.White;
-        
+
         /// <summary>
         /// 获取或设置文本
         /// </summary>
@@ -20,7 +20,7 @@ namespace SpineEditor.UI.UISystem
             get => _text;
             set => _text = value;
         }
-        
+
         /// <summary>
         /// 获取或设置字体
         /// </summary>
@@ -29,7 +29,7 @@ namespace SpineEditor.UI.UISystem
             get => _font;
             set => _font = value;
         }
-        
+
         /// <summary>
         /// 获取或设置文本颜色
         /// </summary>
@@ -38,7 +38,7 @@ namespace SpineEditor.UI.UISystem
             get => _textColor;
             set => _textColor = value;
         }
-        
+
         /// <summary>
         /// 创建UI标签
         /// </summary>
@@ -46,13 +46,13 @@ namespace SpineEditor.UI.UISystem
         /// <param name="font">字体</param>
         public UILabel(string text, SpriteFont font)
         {
-            _text = text;
+            _text = text ?? string.Empty; // 确保文本不为null
             _font = font;
-            
+
             // 根据文本大小设置初始边界
-            if (font != null)
+            if (font != null && !string.IsNullOrEmpty(_text))
             {
-                Vector2 size = font.MeasureString(text);
+                Vector2 size = font.MeasureString(_text);
                 Bounds = new Rectangle(0, 0, (int)size.X, (int)size.Y);
             }
             else
@@ -60,7 +60,7 @@ namespace SpineEditor.UI.UISystem
                 Bounds = new Rectangle(0, 0, 100, 20);
             }
         }
-        
+
         protected override void OnDraw(SpriteBatch spriteBatch)
         {
             if (!string.IsNullOrEmpty(_text) && _font != null)

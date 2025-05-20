@@ -118,8 +118,52 @@ namespace SpineEditor.UI.GUILayoutComponents
         /// <param name="spriteBatch">精灵批处理</param>
         protected override void DrawPanelFrame(SpriteBatch spriteBatch)
         {
-            // 视口不需要绘制面板框架
-            // 这里只需要提供一个空的实现
+            // 绘制视口边框
+            DrawBorder(spriteBatch, _bounds, Color.Gray, 1);
+
+            // 绘制Spine动画
+            if (_eventEditor != null)
+            {
+                // 保存当前视口状态
+                Rectangle originalViewport = spriteBatch.GraphicsDevice.Viewport.Bounds;
+
+                // 保存当前位置
+                Vector2 originalPosition = _eventEditor.Position;
+
+                try
+                {
+                    // 设置新的视口，限制绘制区域
+                    spriteBatch.End();
+
+                    // 不需要修改Spine动画的位置，因为我们在SpineEventEditorGameGUI中已经设置了位置
+                    // 我们只需要设置视口，让Spine动画显示在视口中心
+
+                    // 设置视口
+                    spriteBatch.GraphicsDevice.Viewport = new Viewport(_bounds);
+
+                    // 绘制Spine动画
+                    _eventEditor.Draw();
+                }
+                finally
+                {
+                    // 恢复原始位置
+                    _eventEditor.Position = originalPosition;
+
+                    // 恢复原始视口
+                    spriteBatch.GraphicsDevice.Viewport = new Viewport(originalViewport);
+                    spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+                }
+
+                // 绘制中心点标记 - 使用视口中心
+                Vector2 centerPos = new Vector2(
+                    _bounds.X + _bounds.Width / 2,
+                    _bounds.Y + _bounds.Height / 2
+                );
+
+                // 绘制十字标记
+                spriteBatch.Draw(TextureManager.Pixel, new Rectangle((int)centerPos.X - 10, (int)centerPos.Y, 20, 1), Color.Yellow);
+                spriteBatch.Draw(TextureManager.Pixel, new Rectangle((int)centerPos.X, (int)centerPos.Y - 10, 1, 20), Color.Yellow);
+            }
         }
     }
 }

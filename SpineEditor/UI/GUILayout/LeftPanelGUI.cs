@@ -112,11 +112,17 @@ namespace SpineEditor.UI.GUILayoutComponents
             UISystem.GUILayoutHelper.Title("信息", 2);
             UISystem.GUILayoutHelper.Separator();
 
+            // 添加一些空间
+            UISystem.GUILayout.Label("", UISystem.GUILayout.Height(5));
+
             // 当前时间
             UISystem.GUILayout.BeginHorizontal();
             UISystem.GUILayout.Label("当前时间:", UISystem.GUILayout.Width(80));
             UISystem.GUILayout.Label(_currentTime, UISystem.GUILayout.Width(80));
             UISystem.GUILayout.EndHorizontal();
+
+            // 添加一些空间
+            UISystem.GUILayout.Label("", UISystem.GUILayout.Height(5));
 
             // 总时间
             UISystem.GUILayout.BeginHorizontal();
@@ -124,11 +130,17 @@ namespace SpineEditor.UI.GUILayoutComponents
             UISystem.GUILayout.Label(_totalTime, UISystem.GUILayout.Width(80));
             UISystem.GUILayout.EndHorizontal();
 
+            // 添加一些空间
+            UISystem.GUILayout.Label("", UISystem.GUILayout.Height(5));
+
             // 当前动画
             UISystem.GUILayout.BeginHorizontal();
             UISystem.GUILayout.Label("当前动画:", UISystem.GUILayout.Width(80));
             UISystem.GUILayout.Label(_currentAnimation, UISystem.GUILayout.Width(180));
             UISystem.GUILayout.EndHorizontal();
+
+            // 添加一些空间
+            UISystem.GUILayout.Label("", UISystem.GUILayout.Height(5));
 
             // 事件数量
             UISystem.GUILayout.BeginHorizontal();
@@ -136,11 +148,17 @@ namespace SpineEditor.UI.GUILayoutComponents
             UISystem.GUILayout.Label(_eventCount.ToString(), UISystem.GUILayout.Width(80));
             UISystem.GUILayout.EndHorizontal();
 
+            // 添加一些空间
+            UISystem.GUILayout.Label("", UISystem.GUILayout.Height(5));
+
             // 缩放比例
             UISystem.GUILayout.BeginHorizontal();
             UISystem.GUILayout.Label("缩放比例:", UISystem.GUILayout.Width(80));
             UISystem.GUILayout.Label(_scale.ToString("F2"), UISystem.GUILayout.Width(80));
             UISystem.GUILayout.EndHorizontal();
+
+            // 添加一些空间
+            UISystem.GUILayout.Label("", UISystem.GUILayout.Height(10));
 
             UISystem.GUILayout.EndVertical();
         }
@@ -155,6 +173,9 @@ namespace SpineEditor.UI.GUILayoutComponents
             // 标题
             UISystem.GUILayoutHelper.Title("控制", 2);
             UISystem.GUILayoutHelper.Separator();
+
+            // 添加一些空间
+            UISystem.GUILayout.Label("", UISystem.GUILayout.Height(5));
 
             // 播放/暂停按钮
             UISystem.GUILayout.BeginHorizontal();
@@ -176,6 +197,9 @@ namespace SpineEditor.UI.GUILayoutComponents
             }
             UISystem.GUILayout.EndHorizontal();
 
+            // 添加一些空间
+            UISystem.GUILayout.Label("", UISystem.GUILayout.Height(5));
+
             // 速度控制
             UISystem.GUILayout.BeginHorizontal();
             UISystem.GUILayout.Label("播放速度:", UISystem.GUILayout.Width(80));
@@ -186,6 +210,9 @@ namespace SpineEditor.UI.GUILayoutComponents
                 SpeedChanged?.Invoke(this, _speedText);
             }
             UISystem.GUILayout.EndHorizontal();
+
+            // 添加一些空间
+            UISystem.GUILayout.Label("", UISystem.GUILayout.Height(10));
 
             UISystem.GUILayout.EndVertical();
         }
@@ -201,6 +228,9 @@ namespace SpineEditor.UI.GUILayoutComponents
             UISystem.GUILayoutHelper.Title("动画列表", 2);
             UISystem.GUILayoutHelper.Separator();
 
+            // 添加一些空间
+            UISystem.GUILayout.Label("", UISystem.GUILayout.Height(5));
+
             // 动画列表
             for (int i = 0; i < _animations.Count; i++)
             {
@@ -214,6 +244,12 @@ namespace SpineEditor.UI.GUILayoutComponents
                         _selectedAnimationIndex = i;
                         AnimationSelected?.Invoke(this, _animations[i]);
                     }
+                }
+
+                // 添加一些空间
+                if (i < _animations.Count - 1)
+                {
+                    UISystem.GUILayout.Label("", UISystem.GUILayout.Height(2));
                 }
             }
 

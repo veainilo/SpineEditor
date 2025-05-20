@@ -189,11 +189,11 @@ namespace SpineEditor.UI.UISystem
             var layout = new VerticalLayout
             {
                 BackgroundColor = new Color(40, 40, 40),
-                Spacing = 10,
+                Spacing = 5,  // 减小间距
                 PaddingLeft = 10,
                 PaddingRight = 10,
-                PaddingTop = 10,
-                PaddingBottom = 10,
+                PaddingTop = 5,  // 减小上边距
+                PaddingBottom = 5,  // 减小下边距
                 AutoSize = true
             };
 
@@ -256,6 +256,10 @@ namespace SpineEditor.UI.UISystem
                 return;
             }
 
+            // 确保文本不为null
+            text = text ?? string.Empty;
+
+            // 创建标签
             var label = new UILabel(text, _font);
 
             // 应用布局选项
@@ -298,6 +302,10 @@ namespace SpineEditor.UI.UISystem
                 return false;
             }
 
+            // 确保文本不为null
+            text = text ?? string.Empty;
+
+            // 创建按钮
             var button = new UIButton(text, _font);
 
             // 应用布局选项
@@ -349,6 +357,10 @@ namespace SpineEditor.UI.UISystem
                 return text;
             }
 
+            // 确保文本不为null
+            text = text ?? string.Empty;
+
+            // 创建文本框
             var textBox = new UITextBox("", text, _font);
 
             // 应用布局选项

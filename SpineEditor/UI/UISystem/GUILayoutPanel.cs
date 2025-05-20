@@ -10,28 +10,39 @@ namespace SpineEditor.UI.UISystem
     {
         // UI管理器
         protected UIManager _uiManager;
-        
+
         // 字体
         protected SpriteFont _font;
-        
+
         // 图形设备
         protected GraphicsDevice _graphicsDevice;
-        
+
         // 面板标题
         protected string _title;
-        
+
         // 面板边界
         protected Rectangle _bounds;
-        
+
+        /// <summary>
+        /// 获取面板边界
+        /// </summary>
+        public Rectangle Bounds => _bounds;
+
         // 是否显示标题
         protected bool _showTitle = true;
-        
+
         // 标题高度
         protected int _titleHeight = 25;
-        
+
         // 内容区域
         protected Rectangle _contentBounds;
-        
+
+        // 上一帧鼠标状态
+        protected Microsoft.Xna.Framework.Input.MouseState _prevMouseState;
+
+        // 背景颜色
+        public Color BackgroundColor { get; set; } = new Color(40, 40, 40, 200);
+
         /// <summary>
         /// 创建GUILayout面板
         /// </summary>
@@ -45,17 +56,17 @@ namespace SpineEditor.UI.UISystem
             _bounds = bounds;
             _graphicsDevice = graphicsDevice;
             _font = font;
-            
+
             // 计算内容区域
             UpdateContentBounds();
-            
+
             // 创建UI管理器
             _uiManager = new UIManager(graphicsDevice);
-            
+
             // 初始化GUILayout系统
             GUILayout.Initialize(_uiManager, font);
         }
-        
+
         /// <summary>
         /// 更新面板
         /// </summary>
@@ -64,8 +75,38 @@ namespace SpineEditor.UI.UISystem
         {
             // 更新UI管理器
             _uiManager.Update(gameTime);
+
+            // 处理鼠标输入
+            HandleMouseInput();
         }
-        
+
+        /// <summary>
+        /// 处理鼠标输入
+        /// </summary>
+        protected virtual void HandleMouseInput()
+        {
+            // 获取当前鼠标状态
+            var mouseState = Microsoft.Xna.Framework.Input.Mouse.GetState();
+
+            // 调用鼠标输入处理方法
+            OnMouseInput(mouseState, _prevMouseState);
+
+            // 保存当前鼠标状态为上一帧状态
+            _prevMouseState = mouseState;
+        }
+
+        /// <summary>
+        /// 鼠标输入处理方法 - 子类可以重写此方法
+        /// </summary>
+        /// <param name="mouseState">当前鼠标状态</param>
+        /// <param name="prevMouseState">上一帧鼠标状态</param>
+        /// <returns>是否处理了输入</returns>
+        protected virtual bool OnMouseInput(Microsoft.Xna.Framework.Input.MouseState mouseState, Microsoft.Xna.Framework.Input.MouseState prevMouseState)
+        {
+            // 默认实现不处理任何输入
+            return false;
+        }
+
         /// <summary>
         /// 绘制面板
         /// </summary>
@@ -74,14 +115,14 @@ namespace SpineEditor.UI.UISystem
         {
             // 绘制面板框架
             DrawPanelFrame(spriteBatch);
-            
+
             // 绘制GUI内容
             DrawGUI();
-            
+
             // 绘制UI管理器
             _uiManager.Draw(spriteBatch);
         }
-        
+
         /// <summary>
         /// 绘制面板框架
         /// </summary>
@@ -89,17 +130,17 @@ namespace SpineEditor.UI.UISystem
         protected virtual void DrawPanelFrame(SpriteBatch spriteBatch)
         {
             // 绘制面板背景
-            spriteBatch.Draw(TextureManager.Pixel, _bounds, new Color(40, 40, 40, 200));
-            
+            spriteBatch.Draw(TextureManager.Pixel, _bounds, BackgroundColor);
+
             // 绘制面板边框
             DrawBorder(spriteBatch, _bounds, Color.Gray, 1);
-            
+
             // 如果显示标题，绘制标题栏
             if (_showTitle)
             {
                 Rectangle titleBar = new Rectangle(_bounds.X, _bounds.Y, _bounds.Width, _titleHeight);
                 spriteBatch.Draw(TextureManager.Pixel, titleBar, new Color(60, 60, 60));
-                
+
                 // 绘制面板标题
                 if (_font != null)
                 {
@@ -112,7 +153,7 @@ namespace SpineEditor.UI.UISystem
                 }
             }
         }
-        
+
         /// <summary>
         /// 绘制边框
         /// </summary>
@@ -131,7 +172,7 @@ namespace SpineEditor.UI.UISystem
             // 右边框
             spriteBatch.Draw(TextureManager.Pixel, new Rectangle(rectangle.X + rectangle.Width - thickness, rectangle.Y, thickness, rectangle.Height), color);
         }
-        
+
         /// <summary>
         /// 更新内容区域
         /// </summary>
@@ -151,7 +192,7 @@ namespace SpineEditor.UI.UISystem
                 _contentBounds = _bounds;
             }
         }
-        
+
         /// <summary>
         /// 设置面板边界
         /// </summary>
@@ -161,7 +202,7 @@ namespace SpineEditor.UI.UISystem
             _bounds = bounds;
             UpdateContentBounds();
         }
-        
+
         /// <summary>
         /// 绘制GUI内容 - 子类必须实现此方法
         /// </summary>
