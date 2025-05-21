@@ -36,12 +36,16 @@ namespace SpineEditor.Events
             {
                 foreach (var animPair in data.Animations)
                 {
-                    var events = new List<LowercaseFrameEvent>();
-                    foreach (var evt in animPair.Value)
+                    // 检查事件列表是否为空或null
+                    if (animPair.Value != null && animPair.Value.Count > 0)
                     {
-                        events.Add(LowercaseFrameEvent.FromFrameEvent(evt));
+                        var events = new List<LowercaseFrameEvent>();
+                        foreach (var evt in animPair.Value)
+                        {
+                            events.Add(LowercaseFrameEvent.FromFrameEvent(evt));
+                        }
+                        result.Animations[animPair.Key] = events;
                     }
-                    result.Animations[animPair.Key] = events;
                 }
             }
 

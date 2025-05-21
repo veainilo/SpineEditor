@@ -152,6 +152,21 @@ namespace SpineEditor.Events
             _propertyPanel = new EventPropertyPanel(_eventEditor, GraphicsDevice, _font);
             _propertyPanel.SetBounds(new Rectangle(GraphicsDevice.Viewport.Width - 300, 0, 300, GraphicsDevice.Viewport.Height - 200));
 
+            // 订阅事件更新通知，以便刷新时间轴
+            _propertyPanel.OnEventUpdated += (s, updatedEvent) => {
+                if (_timelineControl != null && _eventEditor != null)
+                {
+                    Console.WriteLine($"EventPropertyPanel.OnEventUpdated: Event '{updatedEvent.Name}' at time {updatedEvent.Time} was updated. Refreshing timeline.");
+                    _timelineControl.GetEvents().Clear();
+                    foreach (var evt in _eventEditor.Events) // _eventEditor.Events 应该已经是排序的
+                    {
+                        _timelineControl.AddEvent(evt);
+                    }
+                    // 可能还需要通知 _timelineControl 显式重绘，如果它没有自动重绘的话
+                    // _timelineControl.Invalidate(); // 假设有这样的方法
+                }
+            };
+
             // 创建左侧面板
             int leftPanelWidth = 280; // 增加面板宽度
             _leftPanel = new LeftPanel(GraphicsDevice, _font,

@@ -266,17 +266,42 @@ namespace SpineEditor.Events
         /// <param name="animationName">动画名称</param>
         public void SaveEventsToJson(string filePath, string animationName)
         {
-            // 加载现有数据（如果存在）
-            AnimationEventData data = File.Exists(filePath)
-                ? AnimationEventData.LoadFromJson(filePath)
-                : new AnimationEventData();
+            AnimationEventData data = null;
+            bool existingFileLoadedSuccessfully = false;
 
-            // 设置当前动画的事件
-            data.SetEventsForAnimation(animationName, _events);
-            data.SpineFileName = Path.GetFileName(_skeletonDataFilePath);
+            if (File.Exists(filePath))
+            {
+                data = AnimationEventData.LoadFromJson(filePath);
+                if (data != null)
+                {
+                    existingFileLoadedSuccessfully = true;
+                }
+                else
+                {
+                    // 文件存在但加载失败
+                    Console.WriteLine($"错误：无法加载现有的事件文件 {filePath}。保存操作已取消，以防止数据丢失。");
+                    // 可以在这里添加用户提示，例如通过Toast消息
+                    // _toast.Show($"错误：无法加载事件文件 {Path.GetFileName(filePath)}。保存已取消。", 3.0f, Color.Red);
+                    return; // 阻止保存
+                }
+            }
+            else
+            {
+                // 文件不存在，创建一个新的 AnimationEventData
+                data = new AnimationEventData();
+                existingFileLoadedSuccessfully = true; // 视为成功，因为是新文件
+            }
 
-            // 保存数据
-            data.SaveToJson(filePath);
+            // 如果加载成功（或文件原先不存在），则设置当前动画的事件
+            if (existingFileLoadedSuccessfully) // 理论上此时 data 不应为 null
+            {
+                data.SetEventsForAnimation(animationName, _events);
+                data.SpineFileName = Path.GetFileName(_skeletonDataFilePath);
+
+                // 保存数据
+                data.SaveToJson(filePath);
+            }
+            // 此处可以添加一个 else 分支处理 data 为 null 的意外情况，尽管理论上不应发生
         }
 
         /// <summary>

@@ -203,14 +203,16 @@ namespace SpineEditor.UI
             _addEventButton.Click += (sender, e) => {
                 // 在当前时间点添加新事件
                 float currentTime = _eventEditor.CurrentTime;
-                FrameEvent newEvent = new FrameEvent("New Event", currentTime, 0, 0, "");
-                _eventEditor.AddEvent(newEvent.Name, newEvent.Time);
+                string eventName = string.IsNullOrWhiteSpace(_nameTextBox.Text) ? "New Event" : _nameTextBox.Text;
 
-                // 选中新添加的事件
-                _selectedEvent = newEvent;
+                // 创建一个普通的默认事件
+                FrameEvent newEvent = new FrameEvent(eventName, currentTime, EventType.Normal); 
+                // newEvent 会有默认的 IntValue=0, FloatValue=0, StringValue=""
+                
+                _eventEditor.AddEvent(newEvent.Name, newEvent.Time, newEvent.IntValue, newEvent.FloatValue, newEvent.StringValue);
 
-                // 更新UI
-                UpdateUIForEventType();
+                // 选中新添加的事件，并更新UI以反映其属性（包括名称）
+                SetSelectedEvent(newEvent); 
             };
 
             // 设置删除事件按钮事件处理
@@ -230,6 +232,8 @@ namespace SpineEditor.UI
                 if (_selectedEvent != null)
                 {
                     _selectedEvent.Name = _nameTextBox.Text;
+                    // 触发事件更新的通知，以便其他UI（如时间轴）可以刷新
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
 
@@ -237,9 +241,10 @@ namespace SpineEditor.UI
                 if (_selectedEvent != null && float.TryParse(_timeTextBox.Text, out float time))
                 {
                     _selectedEvent.Time = MathHelper.Clamp(time, 0, _eventEditor.AnimationDuration);
-
                     // 重新排序事件
                     _eventEditor.Events.Sort((a, b) => a.Time.CompareTo(b.Time));
+                    // 触发事件更新的通知
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
 
@@ -248,28 +253,25 @@ namespace SpineEditor.UI
                 if (_selectedEvent != null)
                 {
                     // 根据选择的事件类型更新事件
-                    switch (_eventTypeDropdown.SelectedIndex)
+                    EventType newType = (EventType)_eventTypeDropdown.SelectedIndex;
+                    if (_selectedEvent.EventType != newType)
                     {
-                        case 0: // Normal
-                            _selectedEvent.EventType = EventType.Normal;
-                            break;
-                        case 1: // Attack
-                            _selectedEvent.EventType = EventType.Attack;
-                            if (_selectedEvent.Attack == null)
-                                _selectedEvent.Attack = new AttackData();
-                            break;
-                        case 2: // Effect
-                            _selectedEvent.EventType = EventType.Effect;
-                            if (_selectedEvent.Effect == null)
-                                _selectedEvent.Effect = new EffectData();
-                            break;
-                        case 3: // Sound
-                            _selectedEvent.EventType = EventType.Sound;
-                            if (_selectedEvent.Sound == null)
-                                _selectedEvent.Sound = new SoundData();
-                            break;
+                        _selectedEvent.EventType = newType;
+                        // 根据事件类型初始化相应的数据
+                        switch (newType)
+                        {
+                            case EventType.Attack:
+                                if (_selectedEvent.Attack == null) _selectedEvent.Attack = new AttackData();
+                                break;
+                            case EventType.Effect:
+                                if (_selectedEvent.Effect == null) _selectedEvent.Effect = new EffectData();
+                                break;
+                            case EventType.Sound:
+                                if (_selectedEvent.Sound == null) _selectedEvent.Sound = new SoundData();
+                                break;
+                        }
+                         OnEventUpdated?.Invoke(this, _selectedEvent);
                     }
-
                     // 更新 UI 显示
                     UpdateUIForEventType();
                 }
@@ -277,23 +279,26 @@ namespace SpineEditor.UI
 
             // 普通事件 UI 元素事件处理
             _intValueTextBox.TextChanged += (sender, e) => {
-                if (_selectedEvent != null && int.TryParse(_intValueTextBox.Text, out int value))
+                if (_selectedEvent != null && _selectedEvent.EventType == EventType.Normal && int.TryParse(_intValueTextBox.Text, out int value))
                 {
                     _selectedEvent.IntValue = value;
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
 
             _floatValueTextBox.TextChanged += (sender, e) => {
-                if (_selectedEvent != null && float.TryParse(_floatValueTextBox.Text, out float value))
+                if (_selectedEvent != null && _selectedEvent.EventType == EventType.Normal && float.TryParse(_floatValueTextBox.Text, out float value))
                 {
                     _selectedEvent.FloatValue = value;
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
 
             _stringValueTextBox.TextChanged += (sender, e) => {
-                if (_selectedEvent != null)
+                if (_selectedEvent != null && _selectedEvent.EventType == EventType.Normal)
                 {
                     _selectedEvent.StringValue = _stringValueTextBox.Text;
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
 
@@ -302,6 +307,7 @@ namespace SpineEditor.UI
                 if (_selectedEvent != null && _selectedEvent.Attack != null)
                 {
                     _selectedEvent.Attack.Type = _attackTypeTextBox.Text;
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
 
@@ -309,14 +315,20 @@ namespace SpineEditor.UI
                 if (_selectedEvent != null && _selectedEvent.Attack != null && int.TryParse(_attackDamageTextBox.Text, out int damage))
                 {
                     _selectedEvent.Attack.Damage = damage;
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
 
             _shapeTypeDropdown.SelectedIndexChanged += (sender, e) => {
                 if (_selectedEvent != null && _selectedEvent.Attack != null && _selectedEvent.Attack.Shape != null)
                 {
-                    _selectedEvent.Attack.Shape.Type = (ShapeType)_shapeTypeDropdown.SelectedIndex;
-                    UpdateShapeUIVisibility();
+                    ShapeType newShapeType = (ShapeType)_shapeTypeDropdown.SelectedIndex;
+                    if (_selectedEvent.Attack.Shape.Type != newShapeType)
+                    {
+                        _selectedEvent.Attack.Shape.Type = newShapeType;
+                        UpdateShapeUIVisibility(); // 这个方法会处理UI显示逻辑
+                        OnEventUpdated?.Invoke(this, _selectedEvent);
+                    }
                 }
             };
 
@@ -325,6 +337,7 @@ namespace SpineEditor.UI
                     float.TryParse(_shapeXTextBox.Text, out float x))
                 {
                     _selectedEvent.Attack.Shape.X = x;
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
 
@@ -333,30 +346,34 @@ namespace SpineEditor.UI
                     float.TryParse(_shapeYTextBox.Text, out float y))
                 {
                     _selectedEvent.Attack.Shape.Y = y;
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
 
             _shapeWidthTextBox.TextChanged += (sender, e) => {
                 if (_selectedEvent != null && _selectedEvent.Attack != null && _selectedEvent.Attack.Shape != null &&
-                    float.TryParse(_shapeWidthTextBox.Text, out float width))
+                    float.TryParse(_shapeWidthTextBox.Text, out float val))
                 {
-                    _selectedEvent.Attack.Shape.Width = width;
+                    _selectedEvent.Attack.Shape.Width = val; // Width or Radius
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
 
             _shapeHeightTextBox.TextChanged += (sender, e) => {
                 if (_selectedEvent != null && _selectedEvent.Attack != null && _selectedEvent.Attack.Shape != null &&
-                    float.TryParse(_shapeHeightTextBox.Text, out float height))
+                    _selectedEvent.Attack.Shape.Type == ShapeType.Rectangle && float.TryParse(_shapeHeightTextBox.Text, out float val))
                 {
-                    _selectedEvent.Attack.Shape.Height = height;
+                    _selectedEvent.Attack.Shape.Height = val;
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
 
             _shapeRotationTextBox.TextChanged += (sender, e) => {
                 if (_selectedEvent != null && _selectedEvent.Attack != null && _selectedEvent.Attack.Shape != null &&
-                    float.TryParse(_shapeRotationTextBox.Text, out float rotation))
+                    _selectedEvent.Attack.Shape.Type == ShapeType.Rectangle && float.TryParse(_shapeRotationTextBox.Text, out float val))
                 {
-                    _selectedEvent.Attack.Shape.Rotation = rotation;
+                    _selectedEvent.Attack.Shape.Rotation = val;
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
 
@@ -365,6 +382,7 @@ namespace SpineEditor.UI
                 if (_selectedEvent != null && _selectedEvent.Effect != null)
                 {
                     _selectedEvent.Effect.Name = _effectNameTextBox.Text;
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
 
@@ -373,6 +391,7 @@ namespace SpineEditor.UI
                     float.TryParse(_effectXTextBox.Text, out float x))
                 {
                     _selectedEvent.Effect.X = x;
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
 
@@ -381,6 +400,7 @@ namespace SpineEditor.UI
                     float.TryParse(_effectYTextBox.Text, out float y))
                 {
                     _selectedEvent.Effect.Y = y;
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
 
@@ -389,6 +409,7 @@ namespace SpineEditor.UI
                     float.TryParse(_effectScaleTextBox.Text, out float scale))
                 {
                     _selectedEvent.Effect.Scale = scale;
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
 
@@ -397,6 +418,7 @@ namespace SpineEditor.UI
                 if (_selectedEvent != null && _selectedEvent.Sound != null)
                 {
                     _selectedEvent.Sound.Name = _soundNameTextBox.Text;
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
 
@@ -405,6 +427,7 @@ namespace SpineEditor.UI
                     float.TryParse(_soundVolumeTextBox.Text, out float volume))
                 {
                     _selectedEvent.Sound.Volume = volume;
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
 
@@ -413,6 +436,7 @@ namespace SpineEditor.UI
                     float.TryParse(_soundPitchTextBox.Text, out float pitch))
                 {
                     _selectedEvent.Sound.Pitch = pitch;
+                    OnEventUpdated?.Invoke(this, _selectedEvent);
                 }
             };
         }
@@ -820,5 +844,10 @@ namespace SpineEditor.UI
             y += 60;
             _soundPitchTextBox.Bounds = new Rectangle(_bounds.X + 10, y, _bounds.Width - 20, 30);
         }
+
+        /// <summary>
+        /// 当事件属性被修改时触发
+        /// </summary>
+        public event EventHandler<FrameEvent> OnEventUpdated;
     }
 }
