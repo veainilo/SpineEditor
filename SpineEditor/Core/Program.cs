@@ -8,6 +8,7 @@ namespace SpineEditor.Core
         [STAThread]
         static void Main()
         {
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
             // 使用新的UI系统的游戏类
             using (var game = new SpineEventEditorGameNew())
                 game.Run();
