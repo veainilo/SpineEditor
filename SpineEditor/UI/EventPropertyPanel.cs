@@ -201,6 +201,7 @@ namespace SpineEditor.UI
 
             // 设置添加事件按钮事件处理
             _addEventButton.Click += (sender, e) => {
+                Console.WriteLine("[EventPropertyPanel] Add Event button clicked.");
                 // 在当前时间点添加新事件
                 float currentTime = _eventEditor.CurrentTime;
                 string eventName = string.IsNullOrWhiteSpace(_nameTextBox.Text) ? "New Event" : _nameTextBox.Text;
@@ -645,6 +646,11 @@ namespace SpineEditor.UI
 
             // 更新通用 UI 元素
             _deleteButton.Update();
+
+            // 在删除按钮更新后，再次检查 _selectedEvent 是否已被删除
+            if (_selectedEvent == null) 
+                return; // 如果事件被删除了，则提前返回
+
             _nameTextBox.Update(gameTime);
             _timeTextBox.Update(gameTime);
             _eventTypeDropdown.Update();

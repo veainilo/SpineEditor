@@ -232,6 +232,7 @@ namespace SpineEditor.Events
         /// <param name="stringValue">字符串参数</param>
         public void AddEvent(string name, float time, int intValue = 0, float floatValue = 0, string stringValue = "")
         {
+            Console.WriteLine($"[SpineEventEditor] AddEvent called with Name: {name}, Time: {time}, Int: {intValue}, Float: {floatValue}, String: '{stringValue}'");
             _events.Add(new FrameEvent(name, time, intValue, floatValue, stringValue));
 
             // 按时间排序

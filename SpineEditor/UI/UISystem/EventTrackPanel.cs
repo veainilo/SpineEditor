@@ -118,25 +118,55 @@ namespace SpineEditor.UI.UISystem
         protected override bool OnMouseInput(MouseState mouseState, MouseState prevMouseState)
         {
             // 处理点击事件
-            if (prevMouseState.LeftButton == ButtonState.Released && mouseState.LeftButton == ButtonState.Pressed)
+            if (prevMouseState.LeftButton == ButtonState.Released && mouseState.LeftButton == ButtonState.Pressed && Bounds.Contains(mouseState.Position))
             {
-                // 检查是否点击了事件标记
+                List<FrameEvent> overlappingEvents = new List<FrameEvent>();
                 foreach (var evt in Events)
                 {
                     float eventX = XFromTime(evt.Time);
-                    if (Math.Abs(mouseState.X - eventX) < 10)
+                    // 使用一个稍微大一点的容差来更容易选中标记的视觉中心
+                    if (Math.Abs(mouseState.X - (eventX - 8 + (EventMarker != null ? EventMarker.Width / 2f : 8f))) < 10) 
                     {
-                        SelectedEvent = evt;
-                        _isDragging = true;
-                        _dragOffset = mouseState.X - eventX;
-                        OnEventSelected?.Invoke(this, SelectedEvent);
-                        return true; // 吞噬事件
+                        overlappingEvents.Add(evt);
+                    }
+                }
+
+                if (overlappingEvents.Count > 0)
+                {
+                    if (overlappingEvents.Count == 1)
+                    {
+                        SelectedEvent = overlappingEvents[0];
+                    }
+                    else // 多个重叠事件
+                    {
+                        int currentIndex = SelectedEvent != null ? overlappingEvents.IndexOf(SelectedEvent) : -1;
+                        if (currentIndex != -1 && currentIndex < overlappingEvents.Count - 1)
+                        {
+                            SelectedEvent = overlappingEvents[currentIndex + 1];
+                        }
+                        else
+                        {
+                            SelectedEvent = overlappingEvents[0]; // 循环到第一个或默认选择第一个
+                        }
+                    }
+                    _isDragging = true; // 允许立即拖动选中的事件
+                    _dragOffset = mouseState.X - XFromTime(SelectedEvent.Time);
+                    OnEventSelected?.Invoke(this, SelectedEvent);
+                    return true; // 吞噬事件
+                }
+                else
+                {
+                    // 如果点击空白区域，取消选中
+                    if (SelectedEvent != null)
+                    {
+                        SelectedEvent = null;
+                        OnEventSelected?.Invoke(this, null);
                     }
                 }
             }
 
             // 处理右键菜单（如果启用）
-            if (_contextMenuEnabled && prevMouseState.RightButton == ButtonState.Released && mouseState.RightButton == ButtonState.Pressed)
+            if (_contextMenuEnabled && prevMouseState.RightButton == ButtonState.Released && mouseState.RightButton == ButtonState.Pressed && Bounds.Contains(mouseState.Position))
             {
                 // 在这里可以添加右键菜单的处理逻辑
                 // 由于我们已经禁用了右键菜单，这部分代码不会执行
@@ -151,6 +181,8 @@ namespace SpineEditor.UI.UISystem
 
                 // 重新排序事件
                 Events.Sort((a, b) => a.Time.CompareTo(b.Time));
+                // 触发属性面板更新（如果时间变了）
+                OnEventSelected?.Invoke(this, SelectedEvent); 
 
                 return true; // 吞噬事件
             }
